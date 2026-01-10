@@ -1,0 +1,64 @@
+---
+title: vibekit init
+description: Run the interactive setup wizard
+---
+
+import { Steps, FileTree } from '@astrojs/starlight/components'
+
+```bash
+vibekit init
+```
+
+Run this in any project directory. The wizard walks you through first-time setup, then generates everything your AI needs.
+
+## What happens
+
+<Steps>
+
+1. **AlgoKit check** — Installs AlgoKit CLI if missing
+
+2. **Docker check** — Verifies Docker is available (required for Vault and LocalNet)
+
+3. **Provider selection** — Choose Vault, Keyring, or both
+
+4. **Vault bootstrap** — If selected, pulls the Docker image, initializes Vault, and generates your root token and unseal key (shown once—save them)
+
+5. **AI tool selection** — OpenCode, Claude Code, or both
+
+6. **Skills install** — Downloads agent skills from GitHub to your project
+
+7. **MCP config** — Generates `.mcp.json` and/or `opencode.json`
+
+8. **Agent files** — Creates `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, and `.github/copilot-instructions.md`
+
+9. **Optional auth** — GitHub PAT for code search, TestNet dispenser login (stored in OS keyring)
+
+</Steps>
+
+## Files created
+
+<FileTree>
+
+- .mcp.json Claude Code MCP config
+- opencode.json OpenCode MCP config
+- AGENTS.md Agent guidelines
+- CLAUDE.md Points to AGENTS.md
+- .cursorrules Points to AGENTS.md
+- .github/
+  - copilot-instructions.md
+- .claude/
+  - skills/ Claude Code skills
+- .opencode/
+  - skill/ OpenCode skills
+
+</FileTree>
+
+## Re-running init
+
+You can run `vibekit init` again to change settings. It detects existing configuration and lets you update it.
+
+## After setup
+
+```bash
+vibekit status
+```

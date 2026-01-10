@@ -1,0 +1,81 @@
+---
+title: Account Providers
+description: Your keys stay yours
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Your AI can deploy contracts, transfer assets, and sign transactions. But it never sees your private keys. Account providers handle the signing. The AI just requests it.
+
+This is the magic trick: give your agent full autonomy to build, test, and deploy, without ever exposing secrets.
+
+This is safer than environment variables or hardcoded keys—your AI never sees the private key material. But providers can't protect against prompt injection or plain old mistakes. If your AI requests a bad signature, the provider will sign it. Stay vigilant.
+
+## Keyring
+
+The simplest option. Uses your OS's native keyring (Keychain on macOS, Secret Service on Linux, Credential Manager on Windows).
+
+```bash
+# Select Keyring during setup
+vibekit init
+```
+
+#### How it works
+
+- Keys live in your OS keyring, encrypted by the system
+- MCP server requests signatures through the keyring API
+- No containers, no extra services
+
+#### Requirements
+
+- **macOS**: Keychain (built-in, nothing to install)
+- **Linux**: A secret service daemon (GNOME Keyring, KWallet, or similar)
+- **Windows**: Credential Manager (built-in, nothing to install)
+
+<Aside type="caution">
+  Your OS keyring is only as secure as your machine. Malware with local access can read it. If you're on a shared computer or running untrusted software, your keys are exposed.
+</Aside>
+
+## KMD
+
+KMD (Key Management Daemon) comes with AlgoKit LocalNet. It's used automatically for local development. No setup required.
+
+When you're on localnet, VibeKit uses KMD for dispensing test funds from the default accounts. You don't need to configure anything.
+
+## Vault
+
+<Aside type="note" title="Experimental">
+  This feature is experimental. We're putting the APIs out there and gathering feedback. The intended use case is teams managing shared development keys securely, but that workflow isn't fully baked yet.
+</Aside>
+
+HashiCorp Vault in Docker.
+
+```bash
+# Select Vault during setup
+vibekit init
+
+# Or manage manually
+vibekit vault start
+vibekit vault stop
+vibekit vault status
+```
+
+#### Requirements
+
+- Docker installed and running
+
+#### How tokens work
+
+During setup, you receive a root token and unseal key. These are yours to keep. Store them in a password manager. They're shown once and never stored by VibeKit.
+
+The MCP server gets a separate token with limited scope. It can sign transactions and create wallets, but it can't delete keys, access admin functions, or do anything outside its policy. If it's compromised, [revoke it and generate a new one](/cli-reference/vault). Your root token stays safe.
+
+#### What's next
+
+We're exploring [Intermezzo](https://github.com/algorandfoundation/intermezzo) for granular permissions. Give your agent access to testnet keys but not mainnet. Let a contractor deploy but not withdraw. That kind of thing.
+
+Try it, break it, tell us what's missing.
+
+<Aside type="caution">
+  You hold the root token and unseal key. Lose them, and you're locked out. Expose them, and someone else owns your keys. There's no recovery mechanism—treat them like seed phrases. Also, it's running in Docker. Remove the container and its volumes, and your keys are gone.
+</Aside>

@@ -1,0 +1,80 @@
+---
+title: How It Works
+description: What VibeKit gives your AI
+---
+
+import { LinkCard, Steps } from '@astrojs/starlight/components'
+
+VibeKit connects your AI coding tool to Algorand. It has two parts: **skills** that teach the AI how to write code for Algorand and **MCP tools** that let it interact with the blockchain.
+
+The combination is powerful. You can ask your AI to build a decentralized marketplace contract, deploy it to LocalNet, create test assets, call the listing and buying methods, and verify everything works, all in one conversation. Debugging is easier too: instead of manually querying indexer endpoints to check transaction logs, just ask and the AI pulls them for you.
+
+With VibeKit, your agent writes code and operates the entire development loop.
+
+## Development workflow
+
+A typical session:
+
+<Steps>
+
+1. **You ask for a contract** — "Build me an escrow contract"
+
+2. **AI searches the docs** — Kappa MCP retrieves current Algorand documentation
+
+3. **AI finds examples** — VibeKit MCP searches GitHub for canonical patterns
+
+4. **AI writes code and tests** — Using skills for correct Algorand Python/TypeScript syntax
+
+5. **You ask to deploy** — AI deploys to localnet
+
+6. **You ask to interact** — AI lists methods, calls them, checks state
+
+7. **You ask to go live** — AI switches to testnet or mainnet and deploys there
+
+</Steps>
+
+You're not running commands. You're having a conversation. The AI handles the build, test, deploy cycle behind the scenes.
+
+## Skills
+
+Without guidance, LLMs tend to produce Algorand code using outdated frameworks like PyTEAL and Beaker, and struggle with modern Algorand Python and Algorand TypeScript smart contracts. Skills fix this.
+
+Skills are markdown files that give your AI context about Algorand development: smart contract syntax, testing patterns, deployment workflows, error handling. They come from [algorand-devrel/algorand-agent-skills](https://github.com/algorand-devrel/algorand-agent-skills), the official skills maintained by Algorand Foundation. When you run `vibekit init`, they're installed to your project.
+
+Your AI loads relevant skills automatically based on what you're asking. Ask about smart contracts, it loads contract patterns. Ask about errors, it loads debugging guides.
+
+<LinkCard
+  title="Agent Skills"
+  description="What each skill teaches your AI"
+  href="/features/agent-skills"
+/>
+
+## MCP Tools
+
+The MCP (Model Context Protocol) server gives your AI tools to actually do things on-chain: deploy contracts, call methods, create accounts, manage assets.
+
+It starts automatically when you open a VibeKit-configured project in Claude Code or OpenCode. You can also run it manually with `vibekit mcp`.
+
+<LinkCard
+  title="MCP Server"
+  description="Every tool your AI can use on-chain"
+  href="/features/mcp-servers"
+/>
+
+## Account Providers
+
+Private keys are stored separately from the AI. This means you can give your AI free reign to deploy, call contracts, manage assets, and do whatever it needs to do, but it never sees your keys. It requests signatures, and the provider handles the rest.
+
+VibeKit supports three providers:
+
+- **Keyring** — Your OS keyring (Keychain on macOS, Secret Service on Linux), simplest setup
+- **KMD** — Built into LocalNet, used for dispensers on localnet
+- **Vault** — HashiCorp Vault in Docker (experimental, for feedback and testing)
+
+The AI can request signatures but never sees your keys.
+
+<LinkCard
+  title="Account Providers"
+  description="How your keys stay separate from your AI"
+  href="/features/account-providers"
+/>

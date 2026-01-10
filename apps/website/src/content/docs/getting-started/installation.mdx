@@ -1,0 +1,53 @@
+---
+title: Installation
+description: Install VibeKit on your system
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+## Prerequisites
+
+- **macOS or Linux** (x64 or ARM)
+- **[Docker](https://www.docker.com/products/docker-desktop)** — for LocalNet and Vault
+- **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** or **[OpenCode](https://opencode.ai)** — your AI coding tool
+
+[AlgoKit CLI](https://github.com/algorandfoundation/algokit-cli) is also required, but VibeKit will install it for you if needed.
+
+## Install
+
+```bash
+curl -fsSL https://getvibekit.ai/install | sh
+```
+
+This downloads the binary for your platform and installs it to `~/.local/bin/vibekit`.
+
+## Manual Install
+
+Download from [GitHub Releases](https://github.com/gabrielkuettel/vibekit/releases/latest), then:
+
+```bash
+chmod +x vibekit-<platform>
+mv vibekit-<platform> ~/.local/bin/vibekit
+```
+
+## PATH Setup
+
+If `~/.local/bin` isn't in your PATH:
+
+<Tabs>
+  <TabItem label="Bash">
+    ```bash
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
+    ```
+  </TabItem>
+  <TabItem label="Zsh">
+    ```bash
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc && source ~/.zshrc
+    ```
+  </TabItem>
+  <TabItem label="Fish">
+    ```bash
+    fish_add_path ~/.local/bin
+    ```
+  </TabItem>
+</Tabs>

@@ -1,0 +1,31 @@
+---
+// Custom site title component with ASCII-style glow effect
+// Matches the landing page aesthetic
+---
+
+<a href="/" class="site-title">
+  <span class="logo-text">VIBEKIT</span>
+</a>
+
+<style>
+  .site-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+
+  .logo-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--vk-accent, #5de4c7);
+    text-shadow: 0 0 8px rgba(93, 228, 199, 0.15);
+  }
+
+  .site-title:hover .logo-text {
+    color: var(--vk-accent-light, #7aead3);
+    text-shadow: 0 0 12px rgba(93, 228, 199, 0.25);
+  }
+</style>

@@ -1,0 +1,68 @@
+---
+title: vibekit status
+description: Check component status
+---
+
+```bash
+vibekit status
+```
+
+Shows the current state of all VibeKit components at a glance.
+
+## Output
+
+```
+VibeKit Status
+
+Docker:
+  Status: Running
+
+Account Providers:
+  Vault:
+    Bootstrap: Configured
+    Container: Running
+    Status:    Unsealed
+    MCP Token: Valid
+  Keyring:
+    Status: Available
+
+AlgoKit:
+  Version: 2.5.0
+
+LocalNet:
+  Algod:   Running
+  Indexer: Running
+
+Accounts:
+  Total: 3
+
+TestNet Dispenser:
+  Token: Valid (24d remaining)
+
+GitHub:
+  Token: Configured
+```
+
+## Sections
+
+**Docker** — Is Docker installed and running? Required for Vault and LocalNet.
+
+**Account Providers** — Shows configured providers. For Vault: bootstrap state, container status, seal status, and MCP token validity. For Keyring: availability.
+
+**AlgoKit** — Installed version of AlgoKit CLI.
+
+**LocalNet** — Status of AlgoKit's local Algorand network (Algod and Indexer services).
+
+**Accounts** — Total accounts across all providers. Use your AI agent to list details.
+
+**TestNet Dispenser** — Token status and remaining validity.
+
+**GitHub** — Whether a GitHub PAT is configured for code search.
+
+## Status indicators
+
+| Symbol | Meaning |
+|--------|---------|
+| Green | Working |
+| Yellow | Needs attention |
+| Red | Not working / expired |

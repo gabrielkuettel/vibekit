@@ -1,0 +1,24 @@
+{
+  "headers": [
+    {
+      "source": "/install",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Content-Disposition",
+          "value": "inline"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/docs",
+      "destination": "/getting-started/quick-start",
+      "permanent": false
+    }
+  ]
+}

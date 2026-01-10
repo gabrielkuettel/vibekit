@@ -1,0 +1,72 @@
+---
+title: Agent Skills
+description: Teaching your AI modern Algorand
+---
+
+Without skills, your AI hallucinates. It writes PyTEAL when it should write Algorand Python. It uses Beaker patterns that haven't been current for years. It confidently produces code that doesn't compile.
+
+Skills fix this.
+
+## What are skills?
+
+Skills are markdown files that give your AI context about Algorand development. Smart contract syntax. Testing patterns. Deployment workflows. Error handling. The knowledge it needs to actually be useful.
+
+They come from [algorand-devrel/algorand-agent-skills](https://github.com/algorand-devrel/algorand-agent-skills), maintained by Algorand Foundation. When you run `vibekit init`, they're installed to your project.
+
+## How they work
+
+Your AI loads relevant skills automatically based on what you're asking. Ask about smart contracts, it loads contract patterns. Ask about errors, it loads debugging guides. You don't need to manage this.
+
+The skills live in your project's `.skills/` directory. They're just markdown. You can read them, edit them, or add your own.
+
+## Installing independently
+
+If you don't want the full VibeKit setup, you can install skills on their own:
+
+```bash
+# Clone the skills repo
+git clone https://github.com/algorand-devrel/algorand-agent-skills .skills
+
+# Or add as a submodule
+git submodule add https://github.com/algorand-devrel/algorand-agent-skills .skills
+```
+
+Then point your AI tool at the `.skills/` directory. How you do this depends on your tool. Claude Code and OpenCode pick them up automatically if they're in the project root.
+
+:::note[VS Code Copilot]
+VS Code Copilot's "Agent Skills" feature is experimental and disabled by default. Enable it in Settings (search "agentskills"). The feature is limited compared to dedicated coding agents like Claude Code or OpenCode.
+:::
+
+## Updating skills
+
+Skills are updated regularly as Algorand evolves. To get the latest:
+
+```bash
+# If using vibekit
+vibekit init  # re-running refreshes skills
+
+# If installed manually
+cd .skills && git pull
+```
+
+## Writing your own
+
+Skills are just markdown with a specific structure. If you have patterns specific to your project, add them to `.skills/` and your AI will use them.
+
+Look at the existing skills for the format. The key is being specific and providing examples. Vague instructions produce vague code.
+
+## Available skills
+
+| Skill | Description |
+|-------|-------------|
+| `build-smart-contracts` | Core patterns for Algorand Python and TypeScript contracts |
+| `algorand-typescript` | AVM types, storage patterns, and language syntax |
+| `test-smart-contracts` | Testing strategies and integration testing with generated clients |
+| `use-algokit-cli` | AlgoKit commands for build, test, deploy |
+| `use-algokit-utils` | Client-side library for contract interactions |
+| `create-project` | Project initialization with AlgoKit templates |
+| `search-algorand-examples` | Finding canonical code examples on GitHub |
+| `call-smart-contracts` | Deployment workflows and method calls |
+| `deploy-react-frontend` | React frontends with wallet integration |
+| `troubleshoot-errors` | Error diagnosis and resolution |
+| `implement-arc-standards` | ARC-4, ARC-32, ARC-56 implementation |

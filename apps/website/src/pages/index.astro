@@ -1,0 +1,173 @@
+---
+import Layout from '../layouts/Landing.astro';
+import Terminal from '../components/Terminal.astro';
+import CopyButton from '../components/CopyButton.astro';
+---
+
+<Layout title="VibeKit - AI-Powered Algorand Development">
+  <main class="min-h-screen bg-[#121212] text-white">
+    <!-- Hero Section -->
+    <section class="hero-bg relative overflow-hidden px-4 py-20 sm:py-28">
+      <div class="max-w-4xl mx-auto text-center">
+        <!-- ASCII Logo -->
+        <div class="mb-8 font-mono text-emerald-400 text-[10px] sm:text-xs md:text-sm leading-tight whitespace-pre select-none ascii-logo">
+<pre class="inline-block text-left">{`
+██    ██ ██ ██████  ███████ ██   ██ ██ ████████
+██    ██ ██ ██   ██ ██      ██  ██  ██    ██
+██    ██ ██ ██████  █████   █████   ██    ██
+ ██  ██  ██ ██   ██ ██      ██  ██  ██    ██
+  ████   ██ ██████  ███████ ██   ██ ██    ██
+`}</pre>
+        </div>
+
+        <!-- Tagline -->
+        <p class="text-2xl sm:text-3xl text-white mb-3 font-bold tracking-tight">
+          From prompt to mainnet.
+        </p>
+        <p class="text-[#888] mb-12 tracking-wide text-sm sm:text-base max-w-xl mx-auto">
+          VibeKit gives your AI the skills and tools to build on Algorand with one command.
+        </p>
+
+        <!-- Install Command -->
+        <div class="max-w-2xl mx-auto mb-8">
+          <div class="relative bg-[#171717] border-2 border-[#333] rounded-xl p-4 font-mono text-sm sm:text-base hover:border-emerald-400 transition-colors">
+            <code class="text-gray-300">
+              <span class="text-emerald-400">$</span> curl -fsSL <span class="text-emerald-400">https://getvibekit.ai/install</span> | sh
+            </code>
+            <CopyButton text="curl -fsSL https://getvibekit.ai/install | sh" />
+          </div>
+        </div>
+
+        <!-- Terminal Demo -->
+        <Terminal />
+
+        <!-- CTA Buttons -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mt-12">
+          <a
+            href="/getting-started/quick-start"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-400 text-[#1e1e1e] text-sm font-semibold rounded-lg hover:bg-emerald-300 transition-all no-underline"
+          >
+            Quick Start
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <a
+            href="https://github.com/gabrielkuettel/vibekit"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-transparent border border-[#444] text-[#ccc] text-sm font-semibold rounded-lg hover:border-emerald-400 hover:text-emerald-400 transition-all no-underline"
+          >
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="px-4 py-20 border-t-2 border-[#333]">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-4 tracking-tight">The agentic stack for Algorand builders.</h2>
+        <p class="text-[#888] text-center mb-4 max-w-2xl mx-auto">
+          Without the right context, your AI hallucinates bad Algorand code. VibeKit gives it the knowledge and tools to actually ship—compile, deploy, test, debug—all in one conversation.
+        </p>
+        <p class="text-[#888] text-center mb-12 max-w-2xl mx-auto">
+          Oh, and your keys never touch the AI. Wallet providers like Vault or your OS keyring handle signing—the AI just requests transactions.
+        </p>
+
+        <!-- Terminal File Tree -->
+        <div class="bg-[#171717] border-2 border-[#333] rounded-xl overflow-hidden">
+          <!-- Terminal Header -->
+          <div class="flex items-center gap-2 px-4 py-3 border-b border-[#333] bg-[#1a1a1a]">
+            <div class="flex gap-1.5">
+              <div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+              <div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+              <div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+            </div>
+            <span class="text-[#666] text-sm font-mono ml-2">vibekit</span>
+          </div>
+
+          <!-- Terminal Content -->
+          <div class="p-4 sm:p-6 font-mono text-sm overflow-x-auto">
+            <!-- Command Line -->
+            <div class="mb-4">
+              <span class="text-emerald-400">$</span>
+              <span class="text-gray-300"> tree ~/vibekit</span>
+            </div>
+
+            <!-- Tree Output -->
+            <pre class="text-gray-400 leading-relaxed"><span class="text-white">~/vibekit/</span>
+│
+├── <span class="text-emerald-400">skills/</span>                  <span class="text-[#666]">11 agent skills (Anthropic spec)</span>
+│   ├── /build               <span class="text-[#888]">compile Puya → TEAL & ARC-56</span>
+│   ├── /test                <span class="text-[#888]">run & debug tests</span>
+│   ├── /deploy              <span class="text-[#888]">ship to any network</span>
+│   ├── /troubleshoot        <span class="text-[#888]">diagnose errors</span>
+│   └── <span class="text-[#666]">...7 more</span>            <span class="text-[#555]">works with Claude Code & OpenCode</span>
+│
+├── <span class="text-emerald-400">mcp-tools/</span>               <span class="text-[#666]">44 blockchain operations</span>
+│   ├── contracts <span class="text-[#555]">(7)</span>        <span class="text-[#888]">deploy, call, introspect ABI</span>
+│   ├── assets <span class="text-[#555]">(8)</span>           <span class="text-[#888]">create, transfer, freeze</span>
+│   ├── accounts <span class="text-[#555]">(7)</span>         <span class="text-[#888]">fund, switch, send</span>
+│   ├── state <span class="text-[#555]">(3)</span>            <span class="text-[#888]">global, local, boxes</span>
+│   └── indexer <span class="text-[#555]">(5)</span>          <span class="text-[#888]">search txns, query logs</span>
+│
+└── <span class="text-emerald-400">security/</span>                <span class="text-[#666]">AI signs. Never sees keys.</span>
+    ├── vault                <span class="text-[#888]">HashiCorp Vault, keys never leave</span>
+    └── keyring              <span class="text-[#888]">OS-encrypted (Keychain / Secret Service)</span></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section class="px-4 py-20 border-t-2 border-[#333]">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 tracking-tight">Get started.</h2>
+
+        <div class="space-y-8">
+          <div class="flex items-start gap-6">
+            <div class="w-10 h-10 bg-emerald-400 text-black rounded-xl flex items-center justify-center flex-shrink-0 font-mono font-bold text-lg">1</div>
+            <div>
+              <h3 class="font-bold text-lg mb-1">Install VibeKit</h3>
+              <p class="text-[#888] text-sm mb-3">Single command installs the CLI binary</p>
+              <code class="text-emerald-400 text-sm bg-[#171717] px-4 py-2 rounded-lg border-2 border-[#333] inline-block">curl -fsSL https://getvibekit.ai/install | sh</code>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-6">
+            <div class="w-10 h-10 bg-emerald-400 text-black rounded-xl flex items-center justify-center flex-shrink-0 font-mono font-bold text-lg">2</div>
+            <div>
+              <h3 class="font-bold text-lg mb-1">Run setup</h3>
+              <p class="text-[#888] text-sm mb-3">Configure your AI tool, install skills, set up MCP servers</p>
+              <code class="text-emerald-400 text-sm bg-[#171717] px-4 py-2 rounded-lg border-2 border-[#333] inline-block">vibekit init</code>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-6">
+            <div class="w-10 h-10 bg-emerald-400 text-black rounded-xl flex items-center justify-center flex-shrink-0 font-mono font-bold text-lg">3</div>
+            <div>
+              <h3 class="font-bold text-lg mb-1">Start building</h3>
+              <p class="text-[#888] text-sm">Use your AI tool with Algorand superpowers</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="px-4 py-12 border-t-2 border-[#333]">
+      <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-[#666] text-sm">
+          Built for <a href="https://algorand.co" class="text-emerald-400 hover:text-emerald-300 font-bold">Algorand</a> developers
+        </p>
+        <div class="flex items-center gap-6">
+          <a href="/getting-started/installation" class="text-[#888] hover:text-emerald-400 text-sm font-semibold transition-colors">Docs</a>
+          <a href="https://github.com/gabrielkuettel/vibekit" class="text-[#888] hover:text-emerald-400 text-sm font-semibold transition-colors">GitHub</a>
+          <a href="https://github.com/gabrielkuettel/vibekit/blob/main/LICENSE" class="text-[#888] hover:text-emerald-400 text-sm font-semibold transition-colors">MIT</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+</Layout>

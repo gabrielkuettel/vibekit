@@ -1,0 +1,198 @@
+/* VibeKit Theme - Starlight Docs Overrides */
+/* Colors defined in tailwind.config.mjs - keep in sync */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Core theme colors */
+  --vk-accent: #5de4c7;
+  --vk-accent-light: #7aead3;
+  --vk-accent-dark: #4ac9ad;
+  --vk-bg: #121212;
+  --vk-bg-card: #171717;
+  --vk-bg-elevated: #1e1e1e;
+  --vk-border: #333;
+  --vk-border-light: #444;
+  --vk-text: #ffffff;
+  --vk-text-muted: #888;
+  --vk-text-subtle: #666;
+
+  /* Starlight color mappings */
+  --sl-color-accent-low: #0f2520;
+  --sl-color-accent: var(--vk-accent);
+  --sl-color-accent-high: var(--vk-accent-light);
+  --sl-color-white: var(--vk-text);
+  --sl-color-gray-1: #e5e5e5;
+  --sl-color-gray-2: #cccccc;
+  --sl-color-gray-3: #999999;
+  --sl-color-gray-4: var(--vk-text-muted);
+  --sl-color-gray-5: var(--vk-text-subtle);
+  --sl-color-gray-6: var(--vk-bg-card);
+  --sl-color-black: var(--vk-bg);
+
+  --sl-color-bg: var(--vk-bg);
+  --sl-color-bg-nav: var(--vk-bg);
+  --sl-color-bg-sidebar: var(--vk-bg);
+  --sl-color-hairline-light: var(--vk-bg-card);
+  --sl-color-hairline: var(--vk-border);
+}
+
+/* Typography */
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--vk-bg);
+}
+
+code, pre, .sl-markdown-content code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Links */
+a {
+  color: var(--vk-accent);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--vk-accent-light);
+}
+
+/* Code blocks */
+.sl-markdown-content pre {
+  background: var(--vk-bg-card) !important;
+  border: 2px solid var(--vk-border);
+  border-radius: 12px;
+}
+
+.sl-markdown-content pre:hover {
+  border-color: var(--vk-border-light);
+}
+
+/* Inline code */
+.sl-markdown-content :not(pre) > code {
+  background: rgba(93, 228, 199, 0.1);
+  border: 1px solid rgba(93, 228, 199, 0.2);
+  color: var(--vk-accent);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* Tables */
+.sl-markdown-content table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.sl-markdown-content th {
+  background: rgba(93, 228, 199, 0.1);
+  border-bottom: 2px solid var(--vk-border);
+  color: var(--vk-accent);
+  font-weight: 600;
+}
+
+.sl-markdown-content td {
+  border-bottom: 1px solid var(--vk-border);
+}
+
+.sl-markdown-content tr:hover td {
+  background: rgba(93, 228, 199, 0.05);
+}
+
+/* Headings */
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3 {
+  color: var(--vk-text);
+  font-weight: 700;
+}
+
+/* Sidebar navigation */
+nav[aria-label="Main"] a[aria-current="page"] {
+  background: rgba(93, 228, 199, 0.15);
+  border-left: 3px solid var(--vk-accent);
+  color: var(--vk-accent);
+}
+
+/* Buttons */
+.sl-link-button {
+  background: var(--vk-accent);
+  border: none;
+  color: var(--vk-bg) !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.sl-link-button:hover {
+  background: var(--vk-accent-light);
+}
+
+/* Cards */
+.card {
+  background: var(--vk-bg-card);
+  border: 2px solid var(--vk-border);
+  border-radius: 12px;
+  transition: border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--vk-accent);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vk-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vk-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vk-border-light);
+}
+
+/* Selection */
+::selection {
+  background: rgba(93, 228, 199, 0.3);
+  color: var(--vk-text);
+}
+
+/* Search */
+.search-input {
+  background: var(--vk-bg-card);
+  border: 2px solid var(--vk-border);
+}
+
+.search-input:focus {
+  border-color: var(--vk-accent);
+}
+
+/* Starlight component overrides for flat design */
+.sl-markdown-content .expressive-code {
+  border-radius: 12px;
+}
+
+/* Remove any shadows */
+* {
+  --sl-shadow-sm: none;
+  --sl-shadow-md: none;
+  --sl-shadow-lg: none;
+}
+
+/* Hide theme selector - dark mode only */
+starlight-theme-select {
+  display: none;
+}
+
+.social-icons::after {
+  display: none;
+}

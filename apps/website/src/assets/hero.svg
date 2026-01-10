@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f1117"/>
+      <stop offset="100%" style="stop-color:#1a1d24"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="300" fill="url(#bg-gradient)" rx="12"/>
+
+  <!-- Terminal window -->
+  <rect x="40" y="40" width="320" height="220" fill="#0a0c10" rx="8" stroke="#353841"/>
+
+  <!-- Terminal header -->
+  <rect x="40" y="40" width="320" height="30" fill="#1a1d24" rx="8"/>
+  <rect x="40" y="60" width="320" height="10" fill="#1a1d24"/>
+  <circle cx="60" cy="55" r="5" fill="#ef4444" opacity="0.8"/>
+  <circle cx="80" cy="55" r="5" fill="#eab308" opacity="0.8"/>
+  <circle cx="100" cy="55" r="5" fill="#22c55e" opacity="0.8"/>
+
+  <!-- Terminal content -->
+  <text x="60" y="100" font-family="monospace" font-size="12" fill="#888b96">$</text>
+  <text x="75" y="100" font-family="monospace" font-size="12" fill="#00d4ff" filter="url(#glow)">vibekit init</text>
+
+  <text x="60" y="130" font-family="monospace" font-size="10" fill="#22c55e">✓</text>
+  <text x="80" y="130" font-family="monospace" font-size="10" fill="#c0c2c7">Installing skills...</text>
+
+  <text x="60" y="150" font-family="monospace" font-size="10" fill="#22c55e">✓</text>
+  <text x="80" y="150" font-family="monospace" font-size="10" fill="#c0c2c7">Configuring MCP servers...</text>
+
+  <text x="60" y="170" font-family="monospace" font-size="10" fill="#22c55e">✓</text>
+  <text x="80" y="170" font-family="monospace" font-size="10" fill="#c0c2c7">Ready to vibe!</text>
+
+  <!-- Cursor -->
+  <rect x="60" y="195" width="8" height="14" fill="#00d4ff" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0;0.8" dur="1s" repeatCount="indefinite"/>
+  </rect>
+</svg>

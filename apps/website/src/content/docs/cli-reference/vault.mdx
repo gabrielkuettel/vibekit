@@ -1,0 +1,104 @@
+---
+title: vibekit vault
+description: Manage HashiCorp Vault
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="note" title="Experimental">
+  Vault runs HashiCorp Vault in Docker on your machine. It's intended for teams managing shared development keys, but that workflow is still evolving.
+</Aside>
+
+## Commands
+
+```bash
+vibekit vault start              # Start and unseal
+vibekit vault stop               # Stop container
+vibekit vault unseal             # Unseal a running Vault
+vibekit vault status             # Show status
+vibekit vault token create       # Create MCP token
+vibekit vault token revoke       # Revoke MCP token
+vibekit vault token status       # Show token info
+```
+
+## start
+
+Starts the Vault container and unseals it. On first run, initializes Vault and displays your root token and unseal key.
+
+```bash
+vibekit vault start
+```
+
+<Aside type="caution">
+  Save the root token and unseal key somewhere safe. They're shown once and never stored by VibeKit. Lose them and you're locked out.
+</Aside>
+
+## stop
+
+Stops the container. Vault seals itself on stop.
+
+```bash
+vibekit vault stop
+```
+
+## unseal
+
+Unseals a running but sealed Vault. Prompts for your unseal key.
+
+```bash
+vibekit vault unseal
+```
+
+## status
+
+Shows container state, seal status, and MCP token info.
+
+```bash
+vibekit vault status
+```
+
+## token create
+
+Creates an MCP token with limited permissions. The AI can sign transactions and list accounts, but can't export keys, delete accounts, or access admin functions.
+
+```bash
+vibekit vault token create
+vibekit vault token create --ttl 7d
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--ttl` | `768h` (32 days) | Token expiry (e.g., `7d`, `720h`) |
+
+The token is stored in your OS keyring.
+
+## token revoke
+
+Revokes the current MCP token. Use this if the token may be compromised or you want to rotate credentials.
+
+```bash
+vibekit vault token revoke
+```
+
+## token status
+
+Shows token details including creation time, expiry, and policies.
+
+```bash
+vibekit vault token status
+```
+
+## Environment variables
+
+For automation (CI/CD, scripts), you can skip interactive prompts:
+
+| Variable | Purpose |
+|----------|---------|
+| `VIBEKIT_VAULT_UNSEAL_KEY` | Skip unseal prompt |
+| `VIBEKIT_VAULT_ROOT_TOKEN` | Skip root token prompt |
+| `VAULT_ADDR` | Custom Vault URL (default: `http://localhost:8200`) |
+
+## Prerequisites
+
+- Docker installed and running
+- Port 8200 available

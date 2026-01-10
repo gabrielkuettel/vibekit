@@ -1,0 +1,51 @@
+---
+title: vibekit dispenser
+description: TestNet dispenser authentication
+---
+
+The TestNet dispenser (faucet) requires authentication. Once logged in, your AI can fund accounts on TestNet.
+
+## Commands
+
+```bash
+vibekit dispenser login    # Authenticate
+vibekit dispenser logout   # Remove token
+```
+
+## login
+
+Authenticates with the Algorand TestNet dispenser using OAuth device flow.
+
+```bash
+vibekit dispenser login
+```
+
+The CLI displays a device code and opens your browser. Enter the code, sign in, and the token is saved to your OS keyring. Tokens are valid for 30 days.
+
+## logout
+
+Removes the saved token.
+
+```bash
+vibekit dispenser logout
+```
+
+## After login
+
+Your AI can fund accounts on TestNet:
+
+```
+"Fund my deployer account with 10 ALGO on testnet"
+```
+
+Rate limits apply—there's a per-account cooldown.
+
+## LocalNet vs TestNet
+
+| | LocalNet | TestNet |
+|----------|----------|---------|
+| Auth | None (uses KMD) | Required |
+| Funds | Unlimited | Rate limited |
+| Persistence | Resets on restart | Permanent |
+
+Use LocalNet for development, TestNet for integration testing.

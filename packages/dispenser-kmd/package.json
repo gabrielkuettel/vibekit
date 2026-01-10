@@ -1,0 +1,27 @@
+{
+  "name": "@vibekit/dispenser-kmd",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@algorandfoundation/algokit-utils": "^9.2.0",
+    "@vibekit/dispenser-interface": "workspace:*",
+    "algosdk": "^3.5.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

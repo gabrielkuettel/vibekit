@@ -1,0 +1,56 @@
+name: CLI Release
+
+on:
+  push:
+    tags:
+      - 'cli-v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x64
+          - os: macos-latest
+            target: darwin-arm64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build dependencies
+        run: bun run build
+
+      - name: Build CLI binary
+        run: bun run build:${{ matrix.target }}
+        working-directory: apps/cli
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vibekit-${{ matrix.target }}
+          path: apps/cli/bin/vibekit-${{ matrix.target }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            vibekit-linux-x64/vibekit-linux-x64
+            vibekit-darwin-arm64/vibekit-darwin-arm64

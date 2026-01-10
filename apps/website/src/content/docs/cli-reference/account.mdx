@@ -1,0 +1,62 @@
+---
+title: vibekit account
+description: Dangerous account operations
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+These commands handle irreversible account operations. They require explicit confirmation and are CLI-only by design—your AI agent can't accidentally run them.
+
+Most day-to-day account operations (create, list, fund, send) happen through MCP tools. The CLI only exposes the dangerous ones.
+
+## Commands
+
+```bash
+vibekit account rekey-to-self <name> --provider=<vault|keyring> --network=<network>
+vibekit account remove <name> --provider=<vault|keyring>
+```
+
+## rekey-to-self
+
+Transfers signing authority from VibeKit to your personal wallet.
+
+```bash
+vibekit account rekey-to-self deployer --provider=vault --network=testnet
+```
+
+| Option | Required | Description |
+|--------|----------|-------------|
+| `--provider` | Yes | `vault` or `keyring` |
+| `--network` | Yes | `localnet`, `testnet`, or `mainnet` |
+
+The command prompts for your wallet address, then submits a rekey transaction. After this:
+
+- VibeKit can no longer sign for this account
+- Your wallet controls all future transactions
+- The account address stays the same
+
+<Aside type="caution">
+  This is irreversible. Use it when you're done developing and want to move an account to production under your own custody.
+</Aside>
+
+## remove
+
+Permanently deletes an account from the provider.
+
+```bash
+vibekit account remove test-account --provider=keyring
+```
+
+| Option | Required | Description |
+|--------|----------|-------------|
+| `--provider` | Yes | `vault` or `keyring` |
+
+<Aside type="caution">
+  The private key is gone forever. Transfer assets and close out applications first.
+</Aside>
+
+## Why CLI-only?
+
+1. **Human confirmation** — You type the command
+2. **No AI accidents** — Agent tools can't delete accounts
+3. **Audit trail** — Terminal history captures the action

@@ -1,0 +1,86 @@
+/* VibeKit Landing Page Styles */
+/* Uses same CSS variables as custom.css for consistency */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Core theme colors - same as custom.css */
+  --vk-accent: #5de4c7;
+  --vk-accent-light: #7aead3;
+  --vk-accent-dark: #4ac9ad;
+  --vk-bg: #121212;
+  --vk-bg-card: #171717;
+  --vk-bg-elevated: #1e1e1e;
+  --vk-border: #333;
+  --vk-border-light: #444;
+  --vk-text: #ffffff;
+  --vk-text-muted: #888;
+  --vk-text-subtle: #666;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--vk-bg);
+  color: var(--vk-text);
+}
+
+code, pre {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+::selection {
+  background: rgba(93, 228, 199, 0.3);
+  color: var(--vk-text);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vk-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vk-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vk-border-light);
+}
+
+/* Hero grain texture */
+.hero-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  opacity: 0.06;
+  pointer-events: none;
+}

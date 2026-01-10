@@ -1,0 +1,28 @@
+{
+  "name": "vibekit",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "build:cli": "turbo run build --filter=@vibekit/cli",
+    "build:cli:all": "bun run --cwd apps/cli build:all",
+    "build:mcp": "turbo run build --filter=@vibekit/mcp-server",
+    "build:website": "turbo run build --filter=@vibekit/website",
+    "dev:cli": "bun run --cwd apps/cli dev",
+    "dev:mcp": "bun run --cwd apps/mcp-server dev",
+    "dev:website": "bun run --cwd apps/website dev",
+    "start:mcp": "bun run --cwd apps/mcp-server start",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "prettier": "^3.2.0",
+    "typescript": "^5.0.0"
+  },
+  "packageManager": "bun@1.3.5"
+}

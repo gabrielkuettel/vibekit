@@ -1,0 +1,32 @@
+# Generated config files (may contain secrets)
+.turbo
+opencode.json
+.mcp.json
+.vibekit.json
+.astro
+
+# Tool-specific directories
+.opencode/
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Node/Bun
+node_modules/
+bun.lockb
+
+# Build artifacts
+dist/
+apps/cli/bin/
+
+# Test output
+*.log

@@ -1,0 +1,38 @@
+---
+title: vibekit remove
+description: Uninstall VibeKit completely
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+```bash
+vibekit remove
+```
+
+Permanently deletes all VibeKit data. Requires confirmation.
+
+<Aside type="caution">
+  This is irreversible. All Vault keys and Keyring accounts will be lost.
+</Aside>
+
+## What gets deleted
+
+1. **Vault container and volumes** — All keys stored in Vault
+2. **OS keyring secrets** — MCP tokens, account keys (Keyring provider), GitHub PAT, dispenser token
+3. **Config directory** — `~/.config/vibekit/`
+
+## What stays
+
+Project files are not touched:
+
+- `.mcp.json` / `opencode.json`
+- `.claude/skills/` / `.opencode/skill/`
+- `AGENTS.md`, `CLAUDE.md`, `.cursorrules`
+
+## Before removing
+
+If you have accounts with funds:
+
+1. Transfer assets to a wallet you control
+2. Or use `vibekit account rekey-to-self` to take custody
+3. Then run `vibekit remove`

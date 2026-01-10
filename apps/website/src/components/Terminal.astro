@@ -1,0 +1,139 @@
+---
+// Terminal animation component - shows vibekit init demo
+---
+
+<div class="max-w-2xl mx-auto">
+  <div class="bg-[#171717] border-2 border-[#333] rounded-xl overflow-hidden">
+    <!-- Terminal header -->
+    <div class="flex items-center gap-2 px-4 py-3 bg-[#1a1a1a] border-b border-[#333]">
+      <div class="flex gap-1.5">
+        <div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+        <div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+        <div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+      </div>
+      <span class="text-[#666] text-sm font-mono ml-2">vibekit</span>
+    </div>
+
+    <!-- Terminal content - fixed height with scroll -->
+    <div id="terminal-container" class="p-4 font-mono text-sm leading-relaxed h-[200px] overflow-y-auto text-left">
+      <div id="terminal-output" class="space-y-1 text-left">
+        <!-- Content will be animated via JS -->
+      </div>
+      <div id="terminal-cursor" class="inline-block w-2 h-4 bg-emerald-400 animate-pulse"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  interface TerminalLine {
+    text: string;
+    type: 'command' | 'output' | 'success' | 'info';
+    delay?: number;
+  }
+
+  const lines: TerminalLine[] = [
+    // Init (3 lines)
+    { text: '$ vibekit init', type: 'command', delay: 600 },
+    { text: '✓ Configured Claude Code + 11 skills', type: 'success', delay: 500 },
+    { text: '', type: 'output', delay: 400 },
+
+    // Build (5 lines)
+    { text: '> Build a counter contract', type: 'command', delay: 700 },
+    { text: '◐ Loading /build skill...', type: 'info', delay: 500 },
+    { text: '◐ Creating Counter.algo.ts', type: 'info', delay: 600 },
+    { text: '✓ Compiled Counter.arc56.json', type: 'success', delay: 500 },
+    { text: '', type: 'output', delay: 400 },
+
+    // Deploy (5 lines)
+    { text: '> Deploy to testnet', type: 'command', delay: 600 },
+    { text: '◐ app_deploy → testnet', type: 'info', delay: 500 },
+    { text: '✓ App ID: 741829456', type: 'success', delay: 400 },
+    { text: '  TxID: 7X2K...QR9N', type: 'output', delay: 250 },
+    { text: '', type: 'output', delay: 400 },
+
+    // Call (6 lines)
+    { text: '> Increment the counter', type: 'command', delay: 600 },
+    { text: '◐ app_call increment()', type: 'info', delay: 400 },
+    { text: '✓ counter: 0 → 1', type: 'success', delay: 350 },
+    { text: '✓ counter: 1 → 2', type: 'success', delay: 350 },
+    { text: '✓ counter: 2 → 3', type: 'success', delay: 350 },
+    { text: '', type: 'output', delay: 500 },
+    { text: 'Prompt → Build → Deploy → Done. 🚀', type: 'success', delay: 800 },
+  ];
+
+  function getColorClass(type: string): string {
+    switch (type) {
+      case 'command': return 'text-gray-300';
+      case 'success': return 'text-emerald-400';
+      case 'info': return 'text-emerald-400/70';
+      default: return 'text-[#888]';
+    }
+  }
+
+  async function animateTerminal() {
+    const container = document.getElementById('terminal-container');
+    const output = document.getElementById('terminal-output');
+    const cursor = document.getElementById('terminal-cursor');
+    if (!output || !cursor || !container) return;
+
+    // Clear and reset
+    output.innerHTML = '';
+    cursor.style.display = 'inline-block';
+
+    const scrollToBottom = () => {
+      container.scrollTop = container.scrollHeight;
+    };
+
+    for (const line of lines) {
+      await new Promise(resolve => setTimeout(resolve, line.delay || 100));
+
+      const div = document.createElement('div');
+      div.className = getColorClass(line.type);
+
+      if (line.type === 'command') {
+        // Type out command character by character
+        for (let i = 0; i < line.text.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 40));
+          div.textContent = line.text.slice(0, i + 1);
+          if (i === 0) output.appendChild(div);
+          scrollToBottom();
+        }
+      } else {
+        div.textContent = line.text;
+        output.appendChild(div);
+        scrollToBottom();
+      }
+    }
+
+    cursor.style.display = 'none';
+
+    // Restart animation after pause
+    setTimeout(animateTerminal, 5000);
+  }
+
+  // Start animation when component is visible
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateTerminal();
+        observer.disconnect();
+      }
+    });
+  });
+
+  const terminalElement = document.getElementById('terminal-output');
+  if (terminalElement) {
+    observer.observe(terminalElement);
+  }
+</script>
+
+<style>
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  #terminal-cursor {
+    animation: blink 1s step-end infinite;
+  }
+</style>

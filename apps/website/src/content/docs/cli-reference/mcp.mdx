@@ -1,0 +1,43 @@
+---
+title: vibekit mcp
+description: Run the MCP server
+---
+
+```bash
+vibekit mcp
+```
+
+Starts the MCP (Model Context Protocol) server. This is what your AI coding tool connects to.
+
+You don't normally run this directly. When you open a project with `.mcp.json` or `opencode.json`, your AI tool (Claude Code, OpenCode) starts the MCP server automatically via stdio.
+
+## When to use
+
+**Manual testing** — Debug MCP tool behavior outside your AI tool.
+
+**Custom integrations** — Connect other MCP clients to VibeKit.
+
+## What it provides
+
+The MCP server exposes tools for:
+
+| Category | Examples |
+|----------|----------|
+| Accounts | Create, list, fund, send payments |
+| Contracts | Deploy, call methods, delete apps |
+| State | Read global, local, and box storage |
+| Assets | Create ASAs, transfer, opt-in |
+| Network | Switch between localnet/testnet/mainnet |
+| Search | Query indexer, search GitHub for examples |
+
+## Environment variables
+
+The MCP server reads these from your config file, but you can override:
+
+| Variable | Purpose |
+|----------|---------|
+| `ALGORAND_NETWORK` | `localnet`, `testnet`, or `mainnet` |
+| `ALGOD_SERVER` | Algod node URL |
+| `ALGOD_TOKEN` | Algod API token |
+| `INDEXER_SERVER` | Indexer URL |
+| `INDEXER_TOKEN` | Indexer API token |
