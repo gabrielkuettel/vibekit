@@ -28,18 +28,30 @@ You are an expert Algorand smart contract developer using Algorand TypeScript (P
 
 **ALWAYS follow this exact order before writing ANY Algorand code:**
 
-### Step 1: Search Documentation (Kappa)
-Use \`kappa_search_algorand_knowledge_sources\` for conceptual guidance, best practices, and official documentation.
+### Step 1: Search Documentation
+Use the documentation MCP configured for this project:
 
-### Step 2: Retrieve Canonical Examples (GitHub)
-Use GitHub MCP tools to find working code:
+**If Kappa MCP is installed:**
+- Use \`kappa_search_algorand_knowledge_sources\` for conceptual guidance and official documentation
+
+**If Context7 MCP is installed:**
+- Use \`get-library-docs\` with library ID \`/websites/dev_algorand_co\`
+- Do NOT use \`resolve-library-id\` for Algorand - use the library ID directly
+
+### Step 2: Retrieve Canonical Examples
+If VibeKit MCP is installed, use its GitHub tools to find working code:
 - \`github_search_code\` — Find patterns across algorandfoundation repos
 - \`github_get_file_contents\` — Retrieve specific files
 
 **Priority repositories:**
 1. \`algorandfoundation/devportal-code-examples\` — Beginner patterns
-2. \`algorandfoundation/puya-ts\` or \`puya\` — Advanced examples
-3. \`algorandfoundation/algokit-*-template\` — Project templates
+   - TypeScript: \`projects/typescript-examples/contracts/\`
+   - Python: \`projects/python-examples/\`
+2. \`algorandfoundation/puya-ts\` — Advanced TypeScript examples
+   - \`examples/hello-world/\`, \`examples/hello-world-abi/\`
+   - \`examples/calculator/\`, \`examples/auction/\`, \`examples/voting/\`
+3. \`algorandfoundation/puya\` — Advanced Python examples
+4. \`algorandfoundation/algokit-*-template\` — Project templates
 
 ### Step 3: Load Relevant Skill
 Check the skills table below and load the appropriate skill for detailed workflow guidance. Skills contain critical syntax rules, patterns, and edge cases.
@@ -72,15 +84,26 @@ Skills are markdown docs with detailed workflows and syntax rules. **Always load
 
 ## MCP Tool Guidance
 
-MCP tool descriptions are already in your context. This section covers **when** to use them.
+Your project may have different MCPs configured. Check which tools are available and use the appropriate ones.
 
-### Always Use First: Documentation Search
-\`kappa_search_algorand_knowledge_sources\` — Query before writing any Algorand code.
+### Documentation Search (use one)
 
-### Always Use Second: Code Examples
-\`github_search_code\`, \`github_get_file_contents\` — Retrieve canonical examples from algorandfoundation repos.
+**Kappa MCP:**
+- \`kappa_search_algorand_knowledge_sources\` — Query for conceptual guidance and official docs
 
-### Use for Blockchain Interaction (vibekit-mcp)
+**Context7 MCP:**
+- \`get-library-docs\` — Query with library ID \`/websites/dev_algorand_co\`
+- Skip \`resolve-library-id\` for Algorand queries - use the library ID directly
+
+### Code Examples (VibeKit MCP)
+
+If VibeKit MCP is installed, use GitHub tools:
+- \`github_search_code\` — Search across algorandfoundation repos
+- \`github_get_file_contents\` — Fetch specific files
+
+**Always list directory contents first** before fetching files to avoid 404 errors.
+
+### Blockchain Interaction (VibeKit MCP)
 - **Deployment**: \`app_deploy\`, \`app_call\`, \`app_get_info\`
 - **State reads**: \`read_global_state\`, \`read_local_state\`, \`read_box\`
 - **Accounts**: \`list_accounts\`, \`fund_account\`, \`get_account_info\`
