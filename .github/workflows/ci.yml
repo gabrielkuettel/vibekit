@@ -18,6 +18,12 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Bundle skills (generates bundled.ts for typecheck)
+        run: bun run prebuild
+        working-directory: apps/cli
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Typecheck
         run: bun run typecheck
 
