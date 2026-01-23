@@ -8,12 +8,10 @@ export const claude: AgentDefinition = {
   id: 'claude',
   displayName: 'Claude Code',
   configFile: '.mcp.json',
-  configTemplate: {
-    mcpServers: {
-      kappa: { type: 'http', url: '$KAPPA_URL' },
-      'vibekit-mcp': { command: '$VIBEKIT_PATH', args: ['mcp'], env: '$MCP_ENV' },
-    },
+  baseConfigTemplate: {
+    mcpServers: {},
   },
+  mcpServersKey: 'mcpServers',
   skillsDir: '.claude/skills',
   templateFile: 'CLAUDE.md',
   templateContent: `# CLAUDE.md

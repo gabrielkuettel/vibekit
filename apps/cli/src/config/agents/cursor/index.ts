@@ -8,12 +8,10 @@ export const cursor: AgentDefinition = {
   id: 'cursor',
   displayName: 'Cursor',
   configFile: '.cursor/mcp.json',
-  configTemplate: {
-    mcpServers: {
-      kappa: { type: 'http', url: '$KAPPA_URL' },
-      'vibekit-mcp': { command: '$VIBEKIT_PATH', args: ['mcp'], env: '$MCP_ENV' },
-    },
+  baseConfigTemplate: {
+    mcpServers: {},
   },
+  mcpServersKey: 'mcpServers',
   skillsDir: '.cursor/rules',
   templateFile: '.cursorrules',
   templateContent: `# .cursorrules

@@ -22,3 +22,22 @@ export {
   getAgentById,
   isValidAgentId,
 } from './agents'
+
+export {
+  MCPS,
+  MCP_IDS,
+  type MCPId,
+  type MCPSelection,
+  type MCPDefinition,
+  type MCPType,
+  type MCPCategory,
+  type AgentMCPConfig,
+  getSelectedMCPs,
+  getMCPById,
+  getMCPsByCategory,
+  isValidMCPId,
+  requiresDocker,
+  requiresAccountProvider,
+  requiresGithubPat,
+  requiresDispenser,
+} from './mcps'

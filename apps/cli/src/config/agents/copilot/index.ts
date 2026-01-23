@@ -8,17 +8,10 @@ export const copilot: AgentDefinition = {
   id: 'copilot',
   displayName: 'VS Code Copilot [EXPERIMENTAL]',
   configFile: '.vscode/mcp.json',
-  configTemplate: {
-    servers: {
-      kappa: { type: 'http', url: '$KAPPA_URL' },
-      'vibekit-mcp': {
-        type: 'stdio',
-        command: '$VIBEKIT_PATH',
-        args: ['mcp'],
-        env: '$MCP_ENV',
-      },
-    },
+  baseConfigTemplate: {
+    servers: {},
   },
+  mcpServersKey: 'servers',
   templateFile: '.github/copilot-instructions.md',
   templateContent: `# copilot-instructions.md
 

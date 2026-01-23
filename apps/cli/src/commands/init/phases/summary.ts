@@ -5,7 +5,13 @@
 import * as p from '@clack/prompts'
 import pc from 'picocolors'
 import type { SetupContext } from '../../../types'
-import { getEnabledAgents } from '../../../config'
+import {
+  getEnabledAgents,
+  getSelectedMCPs,
+  requiresAccountProvider,
+  requiresGithubPat,
+  requiresDispenser,
+} from '../../../config'
 
 function formatStatus(ok: boolean, skipMsg?: string): string {
   return ok ? pc.green('configured') : pc.yellow(skipMsg || 'skipped')
@@ -26,6 +32,17 @@ function formatProviderStatus(context: SetupContext): string {
   }
 
   return pc.green(`${configured.join(' + ')} (configured)`)
+}
+
+function formatMCPStatus(context: SetupContext): string {
+  const selectedMCPs = getSelectedMCPs(context.mcps)
+  const names = selectedMCPs.map((mcp) => mcp.displayName)
+
+  if (names.length === 0) {
+    return pc.yellow('none')
+  }
+
+  return pc.green(names.join(', '))
 }
 
 function buildToolCommand(context: SetupContext): string | undefined {
@@ -49,14 +66,30 @@ export async function showSummaryStep(context: SetupContext): Promise<void> {
 
   const lines = [
     `${pc.bold('Status:')}`,
-    `  Provider:   ${formatProviderStatus(context)}`,
-    `  GitHub:     ${formatStatus(context.configureGithub)}`,
-    `  Kappa:      ${formatStatus(context.kappaAuthStatus === 'completed')}`,
-    `  Dispenser:  ${formatStatus(context.dispenserAuthStatus === 'completed')}`,
+    `  MCPs:       ${formatMCPStatus(context)}`,
+  ]
+
+  if (requiresAccountProvider(context.mcps)) {
+    lines.push(`  Provider:   ${formatProviderStatus(context)}`)
+  }
+
+  if (requiresGithubPat(context.mcps)) {
+    lines.push(`  GitHub:     ${formatStatus(context.configureGithub)}`)
+  }
+
+  if (context.mcps.includes('kappa')) {
+    lines.push(`  Kappa:      ${formatStatus(context.kappaAuthStatus === 'completed')}`)
+  }
+
+  if (requiresDispenser(context.mcps)) {
+    lines.push(`  Dispenser:  ${formatStatus(context.dispenserAuthStatus === 'completed')}`)
+  }
+
+  lines.push(
     '',
     `${pc.bold('Next Steps:')}`,
     `  ${pc.cyan('cd')} ${context.skillsPath}`,
-  ]
+  )
 
   if (toolCmd) {
     lines.push(`  ${pc.cyan(toolCmd)}`)

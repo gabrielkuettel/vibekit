@@ -2,7 +2,7 @@
  * VibeKit Type Definitions
  */
 
-import type { AgentSelection } from '../config'
+import type { AgentSelection, MCPSelection } from '../config'
 
 /** Standardized status for simple steps that complete or skip */
 export type StepStatus = 'completed' | 'skipped'
@@ -27,6 +27,7 @@ export type KeyringSetupStatus = 'completed' | 'skipped' | 'unavailable' | 'erro
 export interface SetupContext {
   os: OS
   agents: AgentSelection
+  mcps: MCPSelection
   skillsPath: SkillsPath
   githubPat?: string
   configureGithub: boolean

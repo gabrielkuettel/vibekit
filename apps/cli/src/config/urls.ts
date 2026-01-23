@@ -13,9 +13,6 @@ export const URLS = {
   // AI Tools
   opencodeConfigSchema: 'https://opencode.ai/config.json',
 
-  // MCP Servers
-  kappaMcp: 'https://algorand-docs.mcp.kapa.ai/',
-
   // Installation Prerequisites
   homebrewInstall: 'https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh',
   pythonDownloads: 'https://www.python.org/downloads/',

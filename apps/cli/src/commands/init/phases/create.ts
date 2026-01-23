@@ -8,11 +8,12 @@ import { dirname, join } from 'path'
 
 import type { SetupContext, SkillsPath, SkillDirectory } from '../../../types'
 import {
-  URLS,
   MCP_ENV_VARS,
   getEnabledAgents,
   getAllAgentSkillsDirs,
+  getSelectedMCPs,
   type AgentSelection,
+  type AgentId,
 } from '../../../config'
 import { ensureDir, writeJsonFile, writeTextFile, fileExists } from '../../../utils/files'
 import { saveGithubToken } from '../../../lib/vault'
@@ -37,7 +38,6 @@ function getVibekitPath(): string {
 type TemplateVars = Record<string, () => unknown>
 
 const TEMPLATE_VARS: TemplateVars = {
-  $KAPPA_URL: () => URLS.kappaMcp,
   $VIBEKIT_PATH: () => getVibekitPath(),
   $VIBEKIT_COMMAND_ARRAY: () => [getVibekitPath(), 'mcp'],
   $MCP_ENV: () => MCP_ENV_VARS,
@@ -56,15 +56,58 @@ function resolveTemplate(value: unknown): unknown {
   return value
 }
 
+/**
+ * Deep clone an object
+ */
+function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj))
+}
+
+/**
+ * Build the MCP config for an agent by merging base template with selected MCPs
+ */
+function buildAgentConfig(
+  baseTemplate: Record<string, unknown>,
+  mcpServersKey: string,
+  agentId: AgentId,
+  mcps: SetupContext['mcps']
+): Record<string, unknown> {
+  const config = deepClone(baseTemplate)
+  const selectedMCPs = getSelectedMCPs(mcps)
+
+  // Get or create the MCP servers section
+  const serversSection = (config[mcpServersKey] as Record<string, unknown>) || {}
+
+  // Add each selected MCP's config
+  for (const mcp of selectedMCPs) {
+    const mcpConfig = mcp.getAgentConfig(agentId)
+    if (mcpConfig) {
+      serversSection[mcpConfig.serverKey] = mcpConfig.config
+    }
+  }
+
+  config[mcpServersKey] = serversSection
+  return config
+}
+
 export async function generateConfigsStep(context: SetupContext): Promise<void> {
   if (context.githubPat) {
     await saveGithubToken(context.githubPat)
   }
 
   for (const agent of getEnabledAgents(context.agents)) {
-    if (!agent.configTemplate || !agent.configFile) continue
+    if (!agent.baseConfigTemplate || !agent.configFile || !agent.mcpServersKey) continue
 
-    const config = resolveTemplate(agent.configTemplate)
+    // Build config by merging base template with selected MCPs
+    const mergedConfig = buildAgentConfig(
+      agent.baseConfigTemplate,
+      agent.mcpServersKey,
+      agent.id as AgentId,
+      context.mcps
+    )
+
+    // Resolve template variables
+    const config = resolveTemplate(mergedConfig)
 
     const outputPath = join(context.skillsPath, agent.configFile)
     await writeJsonFile(outputPath, config)

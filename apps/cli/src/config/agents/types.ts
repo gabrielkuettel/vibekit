@@ -18,8 +18,11 @@ export interface AgentDefinition {
   /** Output config file path (e.g., '.mcp.json', '.cursor/mcp.json') */
   configFile?: string
 
-  /** MCP config template object */
-  configTemplate?: Record<string, unknown>
+  /** Base MCP config template (contains only kappa server, MCPs are merged in) */
+  baseConfigTemplate?: Record<string, unknown>
+
+  /** Key used for MCP servers in this agent's config ('mcpServers' | 'servers' | 'mcp') */
+  mcpServersKey?: string
 
   /** Skills directory path relative to base (e.g., '.claude/skills') - optional, some agents may not have skills */
   skillsDir?: string

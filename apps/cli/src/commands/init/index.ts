@@ -12,6 +12,7 @@ import { checkDockerStep } from './phases/docker'
 import { installAlgokitStep } from './phases/algokit'
 import { setupProvidersStep } from './phases/providers'
 import { selectToolStep, selectSkillsLocationStep, setupGithubPatStep } from './phases/config'
+import { selectMCPsStep } from './phases/mcps'
 import { generateConfigsStep, setupSkillsStep, setupAgentsMdStep } from './phases/create'
 import { authKappaStep, dispenserLoginStep } from './phases/auth'
 import { showSummaryStep } from './phases/summary'
@@ -21,7 +22,11 @@ import {
   getAgentConfigPath,
   getAgentSkillsDir,
   getAgentTemplateFile,
+  requiresAccountProvider,
+  requiresGithubPat,
+  requiresDispenser,
   type AgentSelection,
+  type MCPSelection,
 } from '../../config'
 
 /**
@@ -35,7 +40,7 @@ export async function confirmCreateProject(): Promise<boolean> {
 /**
  * Build preview of files to be created
  */
-function buildFilePreview(skillsPath: string, agents: AgentSelection): string[] {
+function buildFilePreview(skillsPath: string, agents: AgentSelection, _mcps: MCPSelection): string[] {
   const lines: string[] = []
 
   for (const agent of getEnabledAgents(agents)) {
@@ -65,25 +70,42 @@ function buildFilePreview(skillsPath: string, agents: AgentSelection): string[] 
  * Run the interactive setup wizard
  */
 export async function runSetupWizard(): Promise<void> {
-  // Phase 1: Welcome & System Setup
+  // Phase 1: Welcome & OS detection
   welcome()
   const os = await detectOSStep()
+
+  // Phase 2: AlgoKit check (common dependency)
   await installAlgokitStep(os)
+
+  // Phase 3: AI tool selection
+  const agents = await selectToolStep()
+
+  // Phase 4: Directory selection
+  const skillsPath = await selectSkillsLocationStep()
+
+  // Phase 5: Docker check (for MCP availability display)
   const dockerResult = await checkDockerStep()
 
-  // Phase 1.5: Provider Selection & Bootstrap
-  const { vaultStatus, keyringStatus } = await setupProvidersStep(
-    dockerResult.available,
-    dockerResult.running
-  )
+  // Phase 6: MCP selection
+  const mcps = await selectMCPsStep(dockerResult.available)
 
-  // Phase 2: Gather Configuration
-  const agents = await selectToolStep()
-  const skillsPath = await selectSkillsLocationStep()
-  const patResult = await setupGithubPatStep()
+  // Phase 7: GitHub PAT setup (conditional - only if any MCP requires it)
+  let patResult: { configureGithub: boolean; pat?: string } = { configureGithub: false }
+  if (requiresGithubPat(mcps)) {
+    patResult = await setupGithubPatStep()
+  }
 
-  // Phase 3: Preview & Confirm
-  const previewLines = buildFilePreview(skillsPath, agents)
+  // Phase 8: Account provider selection (conditional - only if any MCP requires it)
+  let vaultStatus: SetupContext['vaultStatus'] = 'skipped'
+  let keyringStatus: SetupContext['keyringStatus'] = 'skipped'
+  if (requiresAccountProvider(mcps)) {
+    const providerResult = await setupProvidersStep(dockerResult.available, dockerResult.running)
+    vaultStatus = providerResult.vaultStatus
+    keyringStatus = providerResult.keyringStatus
+  }
+
+  // Phase 9: Preview & Confirm
+  const previewLines = buildFilePreview(skillsPath, agents, mcps)
   p.note(previewLines.join('\n'), 'Files to create')
 
   const confirmed = await confirmCreateProject()
@@ -96,6 +118,7 @@ export async function runSetupWizard(): Promise<void> {
   const context: SetupContext = {
     os,
     agents,
+    mcps,
     skillsPath,
     githubPat: patResult.pat,
     configureGithub: patResult.configureGithub,
@@ -107,7 +130,7 @@ export async function runSetupWizard(): Promise<void> {
     dispenserAuthStatus: 'skipped',
   }
 
-  // Phase 4: Create Files
+  // Phase 10: Create Files
   const s = p.spinner()
   s.start('Creating project files...')
   try {
@@ -122,11 +145,15 @@ export async function runSetupWizard(): Promise<void> {
     throw error
   }
 
-  // Phase 5: Auth Steps
-  context.kappaAuthStatus = await authKappaStep(agents, skillsPath)
-  context.dispenserAuthStatus = await dispenserLoginStep()
+  // Phase 11: Auth Steps
+  if (mcps.includes('kappa')) {
+    context.kappaAuthStatus = await authKappaStep(agents, skillsPath)
+  }
+  if (requiresDispenser(mcps)) {
+    context.dispenserAuthStatus = await dispenserLoginStep()
+  }
 
-  // Phase 6: Summary
+  // Phase 12: Summary
   await showSummaryStep(context)
   p.outro(pc.green('The vibes are immaculate 😎'))
 }
