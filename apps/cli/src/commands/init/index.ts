@@ -51,7 +51,7 @@ function buildFilePreview(skillsPath: string, agents: AgentSelection, _mcps: MCP
 
     const skillsDir = getAgentSkillsDir(skillsPath, agent)
     if (skillsDir) {
-      lines.push(`  ${pc.dim(skillsDir)} ${pc.cyan('(skills from GitHub)')}`)
+      lines.push(`  ${pc.dim(skillsDir)} ${pc.cyan('(skills)')}`)
     }
 
     const templatePath = getAgentTemplateFile(skillsPath, agent)
@@ -135,11 +135,11 @@ export async function runSetupWizard(): Promise<void> {
   s.start('Creating project files...')
   try {
     await generateConfigsStep(context)
-    s.message('Fetching skills from GitHub...')
     const skillsCount = await setupSkillsStep(agents, skillsPath)
-    s.message('Creating agent files...')
+    s.stop(`Created ${skillsCount} skills`)
+
+    // setupAgentsMdStep may prompt user, so run outside spinner
     await setupAgentsMdStep(agents, skillsPath)
-    s.stop(`Project created (${skillsCount} skills installed)`)
   } catch (error) {
     s.stop('Failed to create project')
     throw error

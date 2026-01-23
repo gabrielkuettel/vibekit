@@ -28,6 +28,12 @@ jobs:
       - name: Build dependencies
         run: bun run build
 
+      - name: Bundle skills
+        run: bun run prebuild
+        working-directory: apps/cli
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build CLI binary
         run: bun run build:${{ matrix.target }}
         working-directory: apps/cli

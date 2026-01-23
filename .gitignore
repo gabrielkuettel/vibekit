@@ -1,3 +1,7 @@
+# Environment files
+.env
+.env.local
+
 # Generated config files (may contain secrets)
 .turbo
 opencode.json
@@ -27,6 +31,7 @@ bun.lockb
 # Build artifacts
 dist/
 apps/cli/bin/
+apps/cli/src/lib/skills/bundled.ts
 
 # Test output
 *.log

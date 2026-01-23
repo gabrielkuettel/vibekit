@@ -6,10 +6,12 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "bun run src/index.ts",
+    "prebuild": "bun run scripts/bundle-skills.ts",
+    "prebuild:skills": "bun run scripts/bundle-skills.ts",
     "build": "bun build src/index.ts --compile --outfile bin/vibekit",
     "build:linux-x64": "bun build src/index.ts --compile --target=bun-linux-x64 --outfile bin/vibekit-linux-x64",
     "build:darwin-arm64": "bun build src/index.ts --compile --target=bun-darwin-arm64 --outfile bin/vibekit-darwin-arm64",
-    "build:all": "bun run build:linux-x64 && bun run build:darwin-arm64",
+    "build:all": "bun run prebuild && bun run build:linux-x64 && bun run build:darwin-arm64",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf bin dist"
   },

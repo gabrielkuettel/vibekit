@@ -9,7 +9,7 @@ import pc from 'picocolors'
 import type { AccountProviderType } from '@vibekit/provider-interface'
 import { isKeyringAvailable } from '@vibekit/keyring'
 
-import { hasMcpToken } from '../../../lib/vault'
+import { hasMcpToken, isVaultSealed } from '../../../lib/vault'
 import type { VaultSetupStatus, KeyringSetupStatus } from '../../../types'
 import { multiselect } from '../../../utils/prompts'
 import { vaultBootstrapStep } from './vault'
@@ -135,11 +135,12 @@ export async function setupProvidersStep(
   dockerAvailable: boolean,
   dockerRunning: boolean
 ): Promise<ProviderSetupResult> {
-  const vaultAlreadyConfigured = await hasMcpToken()
+  const hasToken = await hasMcpToken()
+  const vaultUnsealed = hasToken && !(await isVaultSealed())
   const keyringAvailable = await isKeyringAvailable()
 
-  // Fast path: Vault already configured
-  if (vaultAlreadyConfigured) {
+  // Fast path: Vault already configured and unsealed
+  if (hasToken && vaultUnsealed) {
     p.log.success('Vault is already configured')
     return {
       vaultStatus: 'completed',

@@ -17,7 +17,7 @@ import {
 } from '../../../config'
 import { ensureDir, writeJsonFile, writeTextFile, fileExists } from '../../../utils/files'
 import { saveGithubToken } from '../../../lib/vault'
-import { fetchSkillsFromGitHub, getSkillsCount } from '../../../lib/skills'
+import { getSkills, getSkillsCount } from '../../../lib/skills'
 import { select } from '../../../utils/prompts'
 
 import { agentsMdContent } from '../../../config/agents-md'
@@ -109,6 +109,14 @@ export async function generateConfigsStep(context: SetupContext): Promise<void> 
     // Resolve template variables
     const config = resolveTemplate(mergedConfig)
 
+    // Skip creating config file if no MCPs are configured
+    const serversSection = (config as Record<string, unknown>)[agent.mcpServersKey] as
+      | Record<string, unknown>
+      | undefined
+    if (!serversSection || Object.keys(serversSection).length === 0) {
+      continue
+    }
+
     const outputPath = join(context.skillsPath, agent.configFile)
     await writeJsonFile(outputPath, config)
   }
@@ -139,7 +147,7 @@ export async function setupSkillsStep(
   agents: AgentSelection,
   skillsPath: SkillsPath
 ): Promise<number> {
-  const skills = await fetchSkillsFromGitHub()
+  const skills = getSkills()
   const targetDirs = getAllAgentSkillsDirs(skillsPath, agents)
 
   for (const targetDir of targetDirs) {

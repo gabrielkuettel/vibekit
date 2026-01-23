@@ -32,6 +32,12 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Bundle skills
+        run: bun run prebuild
+        working-directory: apps/cli
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build CLI
         run: bun run build:cli
 
