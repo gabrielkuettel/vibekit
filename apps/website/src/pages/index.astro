@@ -30,9 +30,9 @@ import CopyButton from '../components/CopyButton.astro';
 
         <!-- Install Command -->
         <div class="max-w-2xl mx-auto mb-8">
-          <div class="relative bg-[#171717] border-2 border-[#333] rounded-xl p-4 font-mono text-sm sm:text-base hover:border-emerald-400 transition-colors">
-            <code class="text-gray-300">
-              <span class="text-emerald-400">$</span> curl -fsSL <span class="text-emerald-400">https://getvibekit.ai/install</span> | sh
+          <div class="relative bg-[#171717] border-2 border-[#333] rounded-xl p-3 sm:p-4 font-mono text-xs sm:text-base hover:border-emerald-400 transition-colors">
+            <code class="text-gray-300 block pr-8 sm:pr-10">
+              <span class="text-emerald-400">$</span> curl -fsSL <span class="text-emerald-400"><span class="hidden sm:inline">https://</span>getvibekit.ai/install</span> | sh
             </code>
             <CopyButton text="curl -fsSL https://getvibekit.ai/install | sh" />
           </div>
@@ -127,27 +127,27 @@ import CopyButton from '../components/CopyButton.astro';
         <h2 class="text-3xl sm:text-4xl font-bold text-center mb-12 tracking-tight">Get started.</h2>
 
         <div class="space-y-8">
-          <div class="flex items-start gap-6">
+          <div class="flex items-start gap-4 sm:gap-6">
             <div class="w-10 h-10 bg-emerald-400 text-black rounded-xl flex items-center justify-center flex-shrink-0 font-mono font-bold text-lg">1</div>
-            <div>
+            <div class="min-w-0">
               <h3 class="font-bold text-lg mb-1">Install VibeKit</h3>
               <p class="text-[#888] text-sm mb-3">Single command installs the CLI binary</p>
-              <code class="text-emerald-400 text-sm bg-[#171717] px-4 py-2 rounded-lg border-2 border-[#333] inline-block">curl -fsSL https://getvibekit.ai/install | sh</code>
+              <code class="text-emerald-400 text-sm bg-[#171717] px-4 py-2 rounded-lg border-2 border-[#333] block overflow-x-auto whitespace-nowrap">curl -fsSL https://getvibekit.ai/install | sh</code>
             </div>
           </div>
 
-          <div class="flex items-start gap-6">
+          <div class="flex items-start gap-4 sm:gap-6">
             <div class="w-10 h-10 bg-emerald-400 text-black rounded-xl flex items-center justify-center flex-shrink-0 font-mono font-bold text-lg">2</div>
-            <div>
+            <div class="min-w-0">
               <h3 class="font-bold text-lg mb-1">Run setup</h3>
               <p class="text-[#888] text-sm mb-3">Configure your AI tool, install skills, set up MCP servers</p>
-              <code class="text-emerald-400 text-sm bg-[#171717] px-4 py-2 rounded-lg border-2 border-[#333] inline-block">vibekit init</code>
+              <code class="text-emerald-400 text-sm bg-[#171717] px-4 py-2 rounded-lg border-2 border-[#333] block overflow-x-auto whitespace-nowrap">vibekit init</code>
             </div>
           </div>
 
-          <div class="flex items-start gap-6">
+          <div class="flex items-start gap-4 sm:gap-6">
             <div class="w-10 h-10 bg-emerald-400 text-black rounded-xl flex items-center justify-center flex-shrink-0 font-mono font-bold text-lg">3</div>
-            <div>
+            <div class="min-w-0">
               <h3 class="font-bold text-lg mb-1">Start building</h3>
               <p class="text-[#888] text-sm">Use your AI tool with Algorand superpowers</p>
             </div>
