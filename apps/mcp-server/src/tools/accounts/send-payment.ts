@@ -2,13 +2,13 @@
  * send_payment tool
  *
  * Sends a payment transaction (ALGO transfer) between accounts.
- * Uses the wallet provider for signing (KMD on localnet, Vault on testnet/mainnet).
+ * Thin wrapper around sendTransactions() for single payments.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
-import { microAlgo } from '@algorandfoundation/algokit-utils'
 import { parseArgs, type ToolContext } from '../types.js'
 import { resolveSender } from '../../lib/account-service.js'
+import { sendTransactions } from '../transactions/index.js'
 import {
   validateRequiredAddress,
   validateRequiredAmount,
@@ -82,36 +82,37 @@ export async function handleSendPayment(
   validateRequiredAddress(receiver, 'receiver')
   validateRequiredAmount(amount)
   validateOptionalAddress(closeRemainderTo, 'closeRemainderTo')
+  if (note) validateNote(note)
 
+  // Resolve sender for the response
   const { address: senderAddress } = await resolveSender(algorand, config, sender)
 
-  const paymentOptions: Parameters<typeof algorand.send.payment>[0] = {
-    sender: senderAddress,
-    receiver,
-    amount: microAlgo(BigInt(amount)),
-  }
-
-  if (note) {
-    validateNote(note)
-    paymentOptions.note = new TextEncoder().encode(note)
-  }
-
-  if (closeRemainderTo) {
-    paymentOptions.closeRemainderTo = closeRemainderTo
-  }
-
-  const result = await algorand.send.payment(paymentOptions)
+  const result = await sendTransactions(
+    {
+      transactions: [
+        {
+          type: 'payment',
+          receiver,
+          amount,
+          sender,
+          note,
+          closeRemainderTo,
+        },
+      ],
+    },
+    algorand,
+    config,
+    resolveSender
+  )
 
   return {
     success: true,
-    network: config.network,
+    network: result.network,
     txId: result.txIds[0],
     from: senderAddress,
     to: receiver,
     amount: amount.toString(),
     closeRemainderTo,
-    confirmedRound: result.confirmation?.confirmedRound
-      ? Number(result.confirmation.confirmedRound)
-      : undefined,
+    confirmedRound: result.confirmedRound,
   }
 }

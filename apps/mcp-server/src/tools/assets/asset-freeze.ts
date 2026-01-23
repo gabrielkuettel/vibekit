@@ -2,12 +2,13 @@
  * asset_freeze tool
  *
  * Freezes or unfreezes an account's holdings of an Algorand Standard Asset (ASA).
- * Only the asset's freeze address can execute this operation.
+ * Thin wrapper around sendTransactions() for asset freeze/unfreeze.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 import { parseArgs, type ToolContext } from '../types.js'
 import { resolveSender } from '../../lib/account-service.js'
+import { sendTransactions } from '../transactions/index.js'
 import {
   validateRequiredId,
   validateRequiredAddress,
@@ -71,22 +72,30 @@ export async function handleAssetFreeze(
   validateRequiredAddress(account, 'account')
   validateRequiredBoolean(frozen, 'frozen')
 
-  const { address: senderAddress } = await resolveSender(algorand, config, sender)
-
-  const result = await algorand.send.assetFreeze({
-    sender: senderAddress,
-    assetId: BigInt(assetId),
-    account,
-    frozen,
-  })
+  const result = await sendTransactions(
+    {
+      transactions: [
+        {
+          type: 'asset_freeze',
+          assetId,
+          freezeTarget: account,
+          frozen,
+          sender,
+        },
+      ],
+    },
+    algorand,
+    config,
+    resolveSender
+  )
 
   return {
     success: true,
     txId: result.txIds[0],
-    confirmedRound: Number(result.confirmation?.confirmedRound ?? 0),
+    confirmedRound: result.confirmedRound ?? 0,
     assetId,
     account,
     frozen,
-    network: config.network,
+    network: result.network,
   }
 }

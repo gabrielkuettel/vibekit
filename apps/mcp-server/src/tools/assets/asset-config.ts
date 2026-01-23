@@ -2,13 +2,13 @@
  * asset_config tool
  *
  * Reconfigures an Algorand Standard Asset (ASA).
- * Can update manager, reserve, freeze, and clawback addresses.
- * Only the current manager can reconfigure the asset.
+ * Thin wrapper around sendTransactions() for asset configuration.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 import { parseArgs, type ToolContext } from '../types.js'
 import { resolveSender } from '../../lib/account-service.js'
+import { sendTransactions } from '../transactions/index.js'
 import { validateRequiredId, validateOptionalAddress } from '../../lib/validators.js'
 
 export const assetConfigTool: Tool = {
@@ -79,25 +79,33 @@ export async function handleAssetConfig(
   validateOptionalAddress(freeze, 'freeze', true)
   validateOptionalAddress(clawback, 'clawback', true)
 
-  const { address: senderAddress } = await resolveSender(algorand, config, sender)
+  // Get current asset info to preserve unchanged fields
   const assetInfo = await algorand.asset.getById(BigInt(assetId))
 
-  const configOptions: Parameters<typeof algorand.send.assetConfig>[0] = {
-    sender: senderAddress,
-    assetId: BigInt(assetId),
-    manager: manager !== undefined ? manager || undefined : assetInfo.manager,
-    reserve: reserve !== undefined ? reserve || undefined : assetInfo.reserve,
-    freeze: freeze !== undefined ? freeze || undefined : assetInfo.freeze,
-    clawback: clawback !== undefined ? clawback || undefined : assetInfo.clawback,
-  }
-
-  const result = await algorand.send.assetConfig(configOptions)
+  const result = await sendTransactions(
+    {
+      transactions: [
+        {
+          type: 'asset_config',
+          assetId,
+          manager: manager !== undefined ? manager || undefined : assetInfo.manager,
+          reserve: reserve !== undefined ? reserve || undefined : assetInfo.reserve,
+          freeze: freeze !== undefined ? freeze || undefined : assetInfo.freeze,
+          clawback: clawback !== undefined ? clawback || undefined : assetInfo.clawback,
+          sender,
+        },
+      ],
+    },
+    algorand,
+    config,
+    resolveSender
+  )
 
   return {
     success: true,
     txId: result.txIds[0],
-    confirmedRound: Number(result.confirmation?.confirmedRound ?? 0),
+    confirmedRound: result.confirmedRound ?? 0,
     assetId,
-    network: config.network,
+    network: result.network,
   }
 }

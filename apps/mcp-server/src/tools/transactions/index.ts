@@ -6,10 +6,25 @@
 
 import type { ToolRegistration } from '../types.js'
 
-import { sendAtomicGroupTool, handleSendAtomicGroup } from './send-atomic-group.js'
-import { simulateTransactionTool, handleSimulateTransaction } from './simulate-transaction.js'
+import {
+  sendGroupTransactionsTool,
+  handleSendGroupTransactions,
+} from './send-group-transactions.js'
+import {
+  simulateTransactionsTool,
+  handleSimulateTransactions,
+} from './simulate-transactions.js'
 
 export const transactionTools: ToolRegistration[] = [
-  { definition: sendAtomicGroupTool, handler: handleSendAtomicGroup },
-  { definition: simulateTransactionTool, handler: handleSimulateTransaction },
+  { definition: sendGroupTransactionsTool, handler: handleSendGroupTransactions },
+  { definition: simulateTransactionsTool, handler: handleSimulateTransactions },
 ]
+
+// Re-export shared functions and types for use by wrapper tools
+export { sendTransactions, simulateTransactions } from './shared.js'
+export type {
+  SendTransactionsResult,
+  SendTransactionsArgs,
+  SimulateTransactionsResult,
+  SimulateTransactionsArgs,
+} from './shared.js'

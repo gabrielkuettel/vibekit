@@ -6,6 +6,8 @@ import algosdk, { ABIMethod, OnApplicationComplete } from 'algosdk'
 import { microAlgo } from '@algorandfoundation/algokit-utils'
 import type { AlgorandClient } from '@algorandfoundation/algokit-utils'
 import { readFile } from 'node:fs/promises'
+import { validateMetadataHash } from '../../lib/validators.js'
+import type { McpConfig } from '../../config.js'
 
 /** Type for the transaction composer returned by algorand.newGroup() */
 type TransactionComposer = ReturnType<AlgorandClient['newGroup']>
@@ -173,6 +175,7 @@ export async function buildTransactionGroup(
           sender,
           receiver: spec.receiver,
           amount: microAlgo(BigInt(spec.amount)),
+          closeRemainderTo: spec.closeRemainderTo,
           note,
         })
         break
@@ -192,6 +195,7 @@ export async function buildTransactionGroup(
           receiver: spec.receiver,
           amount: BigInt(spec.amount),
           clawbackTarget: spec.clawbackTarget,
+          closeAssetTo: spec.closeAssetTo,
           note,
         })
         break
@@ -214,6 +218,8 @@ export async function buildTransactionGroup(
           throw new Error(`Transaction ${i}: assetId is required for asset_opt_out`)
         if (!spec.closeAssetTo)
           throw new Error(`Transaction ${i}: closeAssetTo is required for asset_opt_out`)
+        // Note: ensureZeroBalance is handled by wrapper tools before calling sendTransactions,
+        // as the composer API doesn't support it directly
         composer.addAssetOptOut({
           sender,
           assetId: BigInt(spec.assetId),
@@ -227,6 +233,7 @@ export async function buildTransactionGroup(
         const spec = txn as AssetCreateTxnSpec
         if (spec.total === undefined)
           throw new Error(`Transaction ${i}: total is required for asset_create`)
+        const metadataHashBytes = validateMetadataHash(spec.metadataHash)
         composer.addAssetCreate({
           sender,
           total: BigInt(spec.total),
@@ -234,6 +241,7 @@ export async function buildTransactionGroup(
           assetName: spec.assetName,
           unitName: spec.unitName,
           url: spec.url,
+          metadataHash: metadataHashBytes,
           defaultFrozen: spec.defaultFrozen ?? false,
           manager: spec.manager,
           reserve: spec.reserve,
@@ -377,4 +385,350 @@ export async function buildTransactionGroup(
   }
 
   return methodReturns
+}
+
+/** Result from sendTransactions() */
+export interface SendTransactionsResult {
+  groupId: string
+  txIds: string[]
+  confirmedRound?: number
+  returns?: unknown[]
+  /** Asset ID from asset_create transaction (first one if multiple) */
+  assetId?: bigint
+  network: string
+}
+
+/** Internal arguments for sendTransactions() */
+export interface SendTransactionsArgs {
+  transactions: TxnSpec[]
+  populateAppCallResources?: boolean
+  coverAppCallInnerTransactionFees?: boolean
+}
+
+/**
+ * Internal function to send transactions.
+ * All wrapper tools call this to execute their transactions.
+ */
+export async function sendTransactions(
+  args: SendTransactionsArgs,
+  algorand: AlgorandClient,
+  config: McpConfig,
+  resolveSenderFn: (
+    algorand: AlgorandClient,
+    config: McpConfig,
+    sender?: string
+  ) => Promise<{ address: string }>
+): Promise<SendTransactionsResult> {
+  const { transactions, populateAppCallResources = true, coverAppCallInnerTransactionFees = false } =
+    args
+
+  if (!transactions || transactions.length === 0) {
+    throw new Error('At least one transaction is required')
+  }
+
+  if (transactions.length > 16) {
+    throw new Error('Maximum 16 transactions per atomic group')
+  }
+
+  // Register signers for all unique senders
+  const uniqueSenders = new Set<string | undefined>()
+  for (const txn of transactions) {
+    uniqueSenders.add(txn.sender)
+  }
+
+  const senderAddresses = new Map<string | undefined, string>()
+  for (const sender of uniqueSenders) {
+    const { address } = await resolveSenderFn(algorand, config, sender)
+    senderAddresses.set(sender, address)
+  }
+
+  const getSender = (sender?: string): string => {
+    return senderAddresses.get(sender)!
+  }
+
+  // Build the transaction group
+  const composer = algorand.newGroup()
+  await buildTransactionGroup(algorand, composer, transactions, getSender)
+
+  // Send the group
+  const result = await composer.send({
+    populateAppCallResources,
+    coverAppCallInnerTransactionFees,
+  })
+
+  // Extract return values for ABI method calls
+  const returns: unknown[] = []
+  if (result.returns && result.returns.length > 0) {
+    for (const ret of result.returns) {
+      returns.push(ret.returnValue)
+    }
+  }
+
+  // Extract asset ID for asset_create transactions
+  let assetId: bigint | undefined
+  if (result.confirmations) {
+    for (const confirmation of result.confirmations) {
+      if (confirmation.assetIndex) {
+        assetId = confirmation.assetIndex
+        break
+      }
+    }
+  }
+
+  return {
+    groupId: result.groupId,
+    txIds: result.txIds,
+    confirmedRound: result.confirmations?.[0]?.confirmedRound
+      ? Number(result.confirmations[0].confirmedRound)
+      : undefined,
+    returns: returns.length > 0 ? returns : undefined,
+    assetId,
+    network: config.network,
+  }
+}
+
+/** Execution tracing configuration */
+export interface ExecTraceConfig {
+  enable?: boolean
+  scratchChange?: boolean
+  stackChange?: boolean
+  stateChange?: boolean
+}
+
+/** Internal arguments for simulateTransactions() */
+export interface SimulateTransactionsArgs {
+  transactions: TxnSpec[]
+  allowMoreLogging?: boolean
+  allowUnnamedResources?: boolean
+  extraOpcodeBudget?: number
+  execTraceConfig?: ExecTraceConfig
+}
+
+/** Per-transaction simulation result */
+export interface TransactionSimulationResult {
+  txId: string
+  logs?: string[]
+  globalStateDelta?: Record<string, { action: string; value?: unknown }>
+  localStateDelta?: Array<{ address: string; delta: Record<string, unknown> }>
+  budgetConsumed?: number
+}
+
+/** Result from simulateTransactions() */
+export interface SimulateTransactionsResult {
+  wouldSucceed: boolean
+  failureMessage?: string
+  simulatedRound: number
+  groupId: string
+  txIds: string[]
+  transactionResults: TransactionSimulationResult[]
+  returns?: unknown[]
+  trace?: unknown
+  appBudgetConsumed?: number
+  appBudgetAdded?: number
+  network: string
+}
+
+/**
+ * Decode base64-encoded log bytes to readable strings where possible
+ */
+function decodeLogs(logs: Uint8Array[]): string[] {
+  return logs.map((log) => {
+    try {
+      const decoded = new TextDecoder().decode(log)
+      if (/^[\x20-\x7E\n\r\t]*$/.test(decoded)) {
+        return decoded
+      }
+      return '0x' + Buffer.from(log).toString('hex')
+    } catch {
+      return '0x' + Buffer.from(log).toString('hex')
+    }
+  })
+}
+
+/**
+ * Parse state delta from simulation response
+ */
+function parseStateDelta(
+  delta: algosdk.modelsv2.EvalDeltaKeyValue[] | undefined
+): Record<string, { action: string; value?: unknown }> | undefined {
+  if (!delta || delta.length === 0) return undefined
+
+  const result: Record<string, { action: string; value?: unknown }> = {}
+  for (const kv of delta) {
+    const key = kv.key ? Buffer.from(kv.key).toString('base64') : 'unknown'
+    const valueDelta = kv.value
+    if (valueDelta) {
+      const action =
+        valueDelta.action === 1 ? 'set_bytes' : valueDelta.action === 2 ? 'set_uint' : 'delete'
+      result[key] = {
+        action,
+        value:
+          valueDelta.action === 1
+            ? valueDelta.bytes
+            : valueDelta.action === 2
+              ? Number(valueDelta.uint)
+              : undefined,
+      }
+    }
+  }
+  return result
+}
+
+/**
+ * Parse local state delta from simulation response
+ */
+function parseLocalStateDelta(
+  delta: algosdk.modelsv2.AccountStateDelta[] | undefined
+): Array<{ address: string; delta: Record<string, unknown> }> | undefined {
+  if (!delta || delta.length === 0) return undefined
+
+  return delta.map((accountDelta) => ({
+    address: accountDelta.address,
+    delta: parseStateDelta(accountDelta.delta) || {},
+  }))
+}
+
+/**
+ * Internal function to simulate transactions.
+ * Previews execution without broadcasting.
+ */
+export async function simulateTransactions(
+  args: SimulateTransactionsArgs,
+  algorand: AlgorandClient,
+  config: McpConfig,
+  resolveSenderFn: (
+    algorand: AlgorandClient,
+    config: McpConfig,
+    sender?: string
+  ) => Promise<{ address: string }>
+): Promise<SimulateTransactionsResult> {
+  const {
+    transactions,
+    allowMoreLogging = false,
+    allowUnnamedResources = true,
+    extraOpcodeBudget,
+    execTraceConfig,
+  } = args
+
+  if (!transactions || transactions.length === 0) {
+    throw new Error('At least one transaction is required')
+  }
+
+  if (transactions.length > 16) {
+    throw new Error('Maximum 16 transactions per atomic group')
+  }
+
+  // Register signers for all unique senders
+  const uniqueSenders = new Set<string | undefined>()
+  for (const txn of transactions) {
+    uniqueSenders.add(txn.sender)
+  }
+
+  const senderAddresses = new Map<string | undefined, string>()
+  for (const sender of uniqueSenders) {
+    const { address } = await resolveSenderFn(algorand, config, sender)
+    senderAddresses.set(sender, address)
+  }
+
+  const getSender = (sender?: string): string => {
+    return senderAddresses.get(sender)!
+  }
+
+  // Build the transaction group
+  const composer = algorand.newGroup()
+  await buildTransactionGroup(algorand, composer, transactions, getSender)
+
+  // Simulate the group
+  const simulateResult = await composer.simulate({
+    skipSignatures: true,
+    allowMoreLogging,
+    allowUnnamedResources,
+    extraOpcodeBudget,
+    execTraceConfig: execTraceConfig?.enable
+      ? new algosdk.modelsv2.SimulateTraceConfig({
+          enable: true,
+          scratchChange: execTraceConfig.scratchChange,
+          stackChange: execTraceConfig.stackChange,
+          stateChange: execTraceConfig.stateChange,
+        })
+      : undefined,
+  })
+
+  const simulateResponse = simulateResult.simulateResponse
+  const txnGroups = simulateResponse.txnGroups
+
+  let wouldSucceed = true
+  let failureMessage: string | undefined
+
+  if (txnGroups && txnGroups.length > 0) {
+    const group = txnGroups[0]
+    if (group.failureMessage) {
+      wouldSucceed = false
+      failureMessage = group.failureMessage
+    }
+    if (group.txnResults) {
+      for (const txnResult of group.txnResults) {
+        if (txnResult.txnResult?.poolError) {
+          wouldSucceed = false
+          failureMessage = failureMessage || txnResult.txnResult.poolError
+        }
+      }
+    }
+  }
+
+  const transactionResults: TransactionSimulationResult[] = []
+  const txnResults = txnGroups?.[0]?.txnResults || []
+
+  for (let i = 0; i < simulateResult.txIds.length; i++) {
+    const txnResult = txnResults[i]?.txnResult
+    const result: TransactionSimulationResult = {
+      txId: simulateResult.txIds[i],
+    }
+
+    if (txnResult) {
+      if (txnResult.logs && txnResult.logs.length > 0) {
+        result.logs = decodeLogs(txnResult.logs)
+      }
+
+      result.globalStateDelta = parseStateDelta(txnResult.globalStateDelta)
+      result.localStateDelta = parseLocalStateDelta(txnResult.localStateDelta)
+    }
+
+    const appBudgetConsumed = txnResults[i]?.appBudgetConsumed
+    if (appBudgetConsumed !== undefined) {
+      result.budgetConsumed = Number(appBudgetConsumed)
+    }
+
+    transactionResults.push(result)
+  }
+
+  const groupAppBudgetConsumed = txnGroups?.[0]?.appBudgetConsumed
+  const groupAppBudgetAdded = txnGroups?.[0]?.appBudgetAdded
+
+  const returns: unknown[] = []
+  if (simulateResult.returns && simulateResult.returns.length > 0) {
+    for (const ret of simulateResult.returns) {
+      returns.push(ret.returnValue)
+    }
+  }
+
+  let trace: unknown
+  if (execTraceConfig?.enable && txnGroups?.[0]?.txnResults) {
+    trace = txnGroups[0].txnResults.map((tr) => tr.execTrace)
+  }
+
+  return {
+    wouldSucceed,
+    failureMessage,
+    simulatedRound: Number(simulateResponse.lastRound),
+    groupId: simulateResult.groupId,
+    txIds: simulateResult.txIds,
+    transactionResults,
+    returns: returns.length > 0 ? returns : undefined,
+    trace,
+    appBudgetConsumed:
+      groupAppBudgetConsumed !== undefined ? Number(groupAppBudgetConsumed) : undefined,
+    appBudgetAdded: groupAppBudgetAdded !== undefined ? Number(groupAppBudgetAdded) : undefined,
+    network: config.network,
+  }
 }

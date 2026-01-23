@@ -43,6 +43,11 @@ export const transactionsSchema = {
         description:
           '(payment) Amount in microAlgos. (asset_transfer, asset_create) Amount in base units.',
       },
+      closeRemainderTo: {
+        type: 'string',
+        description:
+          '(payment) Address to receive remaining balance. Closes the account. Warning: irreversible.',
+      },
       // Asset fields
       assetId: {
         type: 'number',
@@ -68,6 +73,10 @@ export const transactionsSchema = {
       url: {
         type: 'string',
         description: '(asset_create) Asset URL',
+      },
+      metadataHash: {
+        type: 'string',
+        description: '(asset_create) 32-byte metadata hash (64 hex chars or 44 base64 chars)',
       },
       defaultFrozen: {
         type: 'boolean',
@@ -105,7 +114,11 @@ export const transactionsSchema = {
       },
       closeAssetTo: {
         type: 'string',
-        description: '(asset_opt_out) Account to send remaining balance to',
+        description: '(asset_opt_out, asset_transfer) Account to send remaining balance to',
+      },
+      ensureZeroBalance: {
+        type: 'boolean',
+        description: '(asset_opt_out) Fail if account has non-zero balance. Default: true',
       },
       // App call fields
       appId: {

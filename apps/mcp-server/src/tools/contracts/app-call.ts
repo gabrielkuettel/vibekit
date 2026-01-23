@@ -2,17 +2,13 @@
  * app_call tool
  *
  * Calls an ABI method on a deployed smart contract.
- * Supports three modes:
- * 1. appSpec - Full ARC-56/32 JSON for type-safe calls with full ABI decoding
- * 2. appSpecPath - File path to app spec (for large specs)
- * 3. methodSignature - Raw ARC-4 signature (e.g., "hello(string)string") for simple calls
+ * Thin wrapper around sendTransactions() for app calls.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
-import { ABIMethod, OnApplicationComplete } from 'algosdk'
 import { parseArgs, type ToolContext } from '../types.js'
 import { resolveSender } from '../../lib/account-service.js'
-import { readFile } from 'node:fs/promises'
+import { sendTransactions } from '../transactions/index.js'
 
 export const appCallTool: Tool = {
   name: 'app_call',
@@ -49,15 +45,17 @@ export const appCallTool: Tool = {
         description: 'Method arguments in order',
         items: {},
       },
-      onComplete: {
-        type: 'string',
-        enum: ['NoOp', 'OptIn', 'CloseOut', 'DeleteApplication'],
-        description: 'On-complete action. Defaults to NoOp.',
-      },
       sender: {
         type: 'string',
-        description:
-          'Sender address. Must be an account in a KMD wallet (use list_accounts to see available). Defaults to the localnet dispenser if not specified.',
+        description: 'Sender address. Defaults to active account.',
+      },
+      extraFee: {
+        type: 'number',
+        description: 'Extra fee in microALGO to cover inner transactions',
+      },
+      maxFee: {
+        type: 'number',
+        description: 'Max fee in microALGO',
       },
     },
     required: ['appId'],
@@ -66,35 +64,14 @@ export const appCallTool: Tool = {
 
 interface CallContractArgs {
   appId: number
-  method: string
+  method?: string
   args?: unknown[]
-  onComplete?: 'NoOp' | 'OptIn' | 'CloseOut' | 'DeleteApplication'
   sender?: string
-  appSpec?: string // Inline ARC-56/32 JSON
-  appSpecPath?: string // Path to ARC-56/32 JSON file
-  methodSignature?: string // e.g., "hello(string)string"
-}
-
-function parseOnComplete(
-  onComplete?: string
-):
-  | OnApplicationComplete.NoOpOC
-  | OnApplicationComplete.OptInOC
-  | OnApplicationComplete.CloseOutOC
-  | OnApplicationComplete.DeleteApplicationOC
-  | undefined {
-  switch (onComplete) {
-    case 'NoOp':
-      return OnApplicationComplete.NoOpOC
-    case 'OptIn':
-      return OnApplicationComplete.OptInOC
-    case 'CloseOut':
-      return OnApplicationComplete.CloseOutOC
-    case 'DeleteApplication':
-      return OnApplicationComplete.DeleteApplicationOC
-    default:
-      return undefined
-  }
+  appSpec?: string
+  appSpecPath?: string
+  methodSignature?: string
+  extraFee?: number
+  maxFee?: number
 }
 
 export async function handleAppCall(
@@ -114,69 +91,46 @@ export async function handleAppCall(
     appId,
     method,
     args: methodArgs = [],
-    onComplete,
     sender,
     appSpec,
     appSpecPath,
     methodSignature,
+    extraFee,
+    maxFee,
   } = typedArgs
 
   if (!appSpec && !appSpecPath && !methodSignature) {
     throw new Error('Must provide either appSpec, appSpecPath, or methodSignature')
   }
 
-  const { address: senderAddress } = await resolveSender(algorand, config, sender)
+  const result = await sendTransactions(
+    {
+      transactions: [
+        {
+          type: 'app_call',
+          appId,
+          methodSignature,
+          appSpec,
+          appSpecPath,
+          method,
+          args: methodArgs,
+          extraFee,
+          maxFee,
+          sender,
+        },
+      ],
+    },
+    algorand,
+    config,
+    resolveSender
+  )
 
-  let resolvedAppSpec: string | undefined
-  if (appSpecPath) {
-    resolvedAppSpec = await readFile(appSpecPath, 'utf-8')
-  } else if (appSpec) {
-    resolvedAppSpec = appSpec
-  }
-
-  if (resolvedAppSpec) {
-    const appClient = algorand.client.getAppClientById({
-      appSpec: resolvedAppSpec,
-      appId: BigInt(appId),
-      defaultSender: senderAddress,
-    })
-
-    const result = await appClient.send.call({
-      method,
-      args: methodArgs as Parameters<typeof appClient.send.call>[0]['args'],
-      onComplete: parseOnComplete(onComplete),
-    })
-
-    return {
-      success: true,
-      txId: result.transaction.txID(),
-      confirmedRound: result.confirmation?.confirmedRound
-        ? Number(result.confirmation.confirmedRound)
-        : undefined,
-      return: result.return,
-      appId,
-      method,
-    }
-  } else {
-    const abiMethod = ABIMethod.fromSignature(methodSignature!)
-
-    const result = await algorand.send.appCallMethodCall({
-      appId: BigInt(appId),
-      method: abiMethod,
-      args: methodArgs as Parameters<typeof algorand.send.appCallMethodCall>[0]['args'],
-      sender: senderAddress,
-      onComplete: parseOnComplete(onComplete),
-    })
-
-    return {
-      success: true,
-      txId: result.transaction.txID(),
-      confirmedRound: result.confirmation?.confirmedRound
-        ? Number(result.confirmation.confirmedRound)
-        : undefined,
-      return: result.return?.returnValue,
-      appId,
-      method: methodSignature!,
-    }
+  return {
+    success: true,
+    txId: result.txIds[0],
+    confirmedRound: result.confirmedRound,
+    return: result.returns?.[0],
+    appId,
+    method: methodSignature || method || '',
   }
 }

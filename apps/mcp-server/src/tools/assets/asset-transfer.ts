@@ -2,12 +2,13 @@
  * asset_transfer tool
  *
  * Transfers Algorand Standard Assets (ASA) between accounts.
- * Also supports clawback transfers when sender is the clawback address.
+ * Thin wrapper around sendTransactions() for asset transfers.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 import { parseArgs, type ToolContext } from '../types.js'
 import { resolveSender } from '../../lib/account-service.js'
+import { sendTransactions } from '../transactions/index.js'
 import {
   validateRequiredId,
   validateRequiredAmount,
@@ -94,41 +95,41 @@ export async function handleAssetTransfer(
   validateRequiredAddress(receiver, 'receiver')
   validateOptionalAddress(clawbackTarget, 'clawbackTarget')
   validateOptionalAddress(closeAssetTo, 'closeAssetTo')
+  if (note) validateNote(note)
 
+  // Resolve sender for the response
   const { address: senderAddress } = await resolveSender(algorand, config, sender)
 
-  const transferOptions: Parameters<typeof algorand.send.assetTransfer>[0] = {
-    sender: senderAddress,
-    assetId: BigInt(assetId),
-    amount: BigInt(amount),
-    receiver,
-  }
-
-  if (clawbackTarget) {
-    transferOptions.clawbackTarget = clawbackTarget
-  }
-
-  if (closeAssetTo) {
-    transferOptions.closeAssetTo = closeAssetTo
-  }
-
-  if (note) {
-    validateNote(note)
-    transferOptions.note = new TextEncoder().encode(note)
-  }
-
-  const result = await algorand.send.assetTransfer(transferOptions)
+  const result = await sendTransactions(
+    {
+      transactions: [
+        {
+          type: 'asset_transfer',
+          assetId,
+          receiver,
+          amount,
+          sender,
+          clawbackTarget,
+          closeAssetTo,
+          note,
+        },
+      ],
+    },
+    algorand,
+    config,
+    resolveSender
+  )
 
   return {
     success: true,
     txId: result.txIds[0],
-    confirmedRound: Number(result.confirmation?.confirmedRound ?? 0),
+    confirmedRound: result.confirmedRound ?? 0,
     from: clawbackTarget || senderAddress,
     to: receiver,
     amount: amount.toString(),
     assetId,
     clawbackTarget,
     closeAssetTo,
-    network: config.network,
+    network: result.network,
   }
 }

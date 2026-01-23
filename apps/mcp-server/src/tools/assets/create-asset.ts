@@ -2,12 +2,13 @@
  * create_asset tool
  *
  * Creates a new Algorand Standard Asset (ASA).
- * Supports fungible tokens, NFTs, and configurable asset parameters.
+ * Thin wrapper around sendTransactions() for asset creation.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 import { parseArgs, type ToolContext } from '../types.js'
 import { resolveSender } from '../../lib/account-service.js'
+import { sendTransactions } from '../transactions/index.js'
 import {
   validateRequiredPositiveAmount,
   validateDecimals,
@@ -135,35 +136,43 @@ export async function handleCreateAsset(
   validateOptionalAddress(reserve, 'reserve')
   validateOptionalAddress(freeze, 'freeze')
   validateOptionalAddress(clawback, 'clawback')
+  // Validate metadataHash format (will be validated again in shared.ts, but good to fail early)
+  validateMetadataHash(metadataHash)
 
+  // Resolve sender for the response
   const { address: senderAddress } = await resolveSender(algorand, config, sender)
 
-  const metadataHashBytes = validateMetadataHash(metadataHash)
-
-  const result = await algorand.send.assetCreate({
-    sender: senderAddress,
-    total: BigInt(total),
-    decimals,
-    assetName,
-    unitName,
-    url,
-    metadataHash: metadataHashBytes,
-    defaultFrozen,
-    manager: manager || senderAddress,
-    reserve,
-    freeze,
-    clawback,
-  })
-
-  // Extract asset ID from the confirmed transaction
-  const assetId = Number(result.assetId)
+  const result = await sendTransactions(
+    {
+      transactions: [
+        {
+          type: 'asset_create',
+          total,
+          decimals,
+          assetName,
+          unitName,
+          url,
+          metadataHash,
+          defaultFrozen,
+          manager: manager || senderAddress,
+          reserve,
+          freeze,
+          clawback,
+          sender,
+        },
+      ],
+    },
+    algorand,
+    config,
+    resolveSender
+  )
 
   return {
     success: true,
-    assetId,
+    assetId: Number(result.assetId),
     txId: result.txIds[0],
-    confirmedRound: Number(result.confirmation?.confirmedRound ?? 0),
-    network: config.network,
+    confirmedRound: result.confirmedRound ?? 0,
+    network: result.network,
     creator: senderAddress,
   }
 }

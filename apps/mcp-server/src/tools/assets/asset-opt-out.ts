@@ -2,12 +2,13 @@
  * asset_opt_out tool
  *
  * Opts an account out of an Algorand Standard Asset (ASA).
- * Closes the asset position and returns any remaining balance to a specified address.
+ * Thin wrapper around sendTransactions() for asset opt-out.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 import { parseArgs, type ToolContext } from '../types.js'
 import { resolveSender } from '../../lib/account-service.js'
+import { sendTransactions } from '../transactions/index.js'
 import { validateRequiredId, validateRequiredAddress } from '../../lib/validators.js'
 
 export const assetOptOutTool: Tool = {
@@ -66,22 +67,44 @@ export async function handleAssetOptOut(
   validateRequiredId(assetId, 'assetId')
   validateRequiredAddress(creator, 'creator')
 
+  // Resolve sender for the response and balance check
   const { address: senderAddress } = await resolveSender(algorand, config, sender)
 
-  const result = await algorand.send.assetOptOut({
-    sender: senderAddress,
-    assetId: BigInt(assetId),
-    creator,
-    ensureZeroBalance,
-  })
+  // Check balance if ensureZeroBalance is true
+  if (ensureZeroBalance) {
+    const accountInfo = await algorand.account.getInformation(senderAddress)
+    const assetHolding = accountInfo.assets?.find((a) => Number(a.assetId) === assetId)
+    if (assetHolding && assetHolding.amount > 0) {
+      throw new Error(
+        `Account has non-zero balance (${assetHolding.amount}) of asset ${assetId}. ` +
+          'Set ensureZeroBalance=false to opt out anyway and send balance to creator.'
+      )
+    }
+  }
+
+  const result = await sendTransactions(
+    {
+      transactions: [
+        {
+          type: 'asset_opt_out',
+          assetId,
+          closeAssetTo: creator,
+          sender,
+        },
+      ],
+    },
+    algorand,
+    config,
+    resolveSender
+  )
 
   return {
     success: true,
     txId: result.txIds[0],
-    confirmedRound: Number(result.confirmation?.confirmedRound ?? 0),
+    confirmedRound: result.confirmedRound ?? 0,
     assetId,
     account: senderAddress,
     closedTo: creator,
-    network: config.network,
+    network: result.network,
   }
 }

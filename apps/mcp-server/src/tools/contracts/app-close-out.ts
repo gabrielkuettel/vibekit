@@ -2,13 +2,13 @@
  * app_close_out tool
  *
  * Closes out of an application, removing local state.
+ * Thin wrapper around sendTransactions() for app close-out.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
-import { OnApplicationComplete } from 'algosdk'
 import { parseArgs, type ToolContext } from '../types.js'
 import { resolveSender } from '../../lib/account-service.js'
-import { readFile } from 'node:fs/promises'
+import { sendTransactions } from '../transactions/index.js'
 
 export const appCloseOutTool: Tool = {
   name: 'app_close_out',
@@ -42,8 +42,15 @@ export const appCloseOutTool: Tool = {
       },
       sender: {
         type: 'string',
-        description:
-          'Sender address. Must be an account in a KMD wallet (use list_accounts to see available). Defaults to the localnet dispenser if not specified.',
+        description: 'Sender address. Defaults to active account.',
+      },
+      extraFee: {
+        type: 'number',
+        description: 'Extra fee in microALGO to cover inner transactions',
+      },
+      maxFee: {
+        type: 'number',
+        description: 'Max fee in microALGO',
       },
     },
     required: ['appId'],
@@ -57,6 +64,8 @@ interface CloseOutArgs {
   method?: string
   args?: unknown[]
   sender?: string
+  extraFee?: number
+  maxFee?: number
 }
 
 export async function handleAppCloseOut(
@@ -70,52 +79,34 @@ export async function handleAppCloseOut(
 }> {
   const { algorand, config } = ctx
   const typedArgs = parseArgs<CloseOutArgs>(args)
-  const { appId, appSpec, appSpecPath, method, args: methodArgs, sender } = typedArgs
+  const { appId, appSpec, appSpecPath, method, args: methodArgs, sender, extraFee, maxFee } =
+    typedArgs
 
-  const { address: senderAddress } = await resolveSender(algorand, config, sender)
-
-  let resolvedAppSpec: string | undefined
-  if (appSpecPath) {
-    resolvedAppSpec = await readFile(appSpecPath, 'utf-8')
-  } else if (appSpec) {
-    resolvedAppSpec = appSpec
-  }
-
-  if (method && resolvedAppSpec) {
-    const appClient = algorand.client.getAppClientById({
-      appSpec: resolvedAppSpec,
-      appId: BigInt(appId),
-      defaultSender: senderAddress,
-    })
-
-    const result = await appClient.send.call({
-      method,
-      args: (methodArgs || []) as Parameters<typeof appClient.send.call>[0]['args'],
-      onComplete: OnApplicationComplete.CloseOutOC,
-    })
-
-    return {
-      success: true,
-      txId: result.transaction.txID(),
-      confirmedRound: result.confirmation?.confirmedRound
-        ? Number(result.confirmation.confirmedRound)
-        : undefined,
-      appId,
-    }
-  }
-
-  const result = await algorand.send.appCall({
-    sender: senderAddress,
-    appId: BigInt(appId),
-    onComplete: OnApplicationComplete.CloseOutOC,
-  })
+  const result = await sendTransactions(
+    {
+      transactions: [
+        {
+          type: 'app_close_out',
+          appId,
+          appSpec,
+          appSpecPath,
+          method,
+          args: methodArgs,
+          extraFee,
+          maxFee,
+          sender,
+        },
+      ],
+    },
+    algorand,
+    config,
+    resolveSender
+  )
 
   return {
     success: true,
-    txId: result.transaction.txID(),
-    confirmedRound: result.confirmation?.confirmedRound
-      ? Number(result.confirmation.confirmedRound)
-      : undefined,
+    txId: result.txIds[0],
+    confirmedRound: result.confirmedRound,
     appId,
   }
 }

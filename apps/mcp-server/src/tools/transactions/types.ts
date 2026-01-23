@@ -13,6 +13,7 @@ export interface PaymentTxnSpec extends BaseTxnSpec {
   type: 'payment'
   receiver: string
   amount: number
+  closeRemainderTo?: string
 }
 
 export interface AssetTransferTxnSpec extends BaseTxnSpec {
@@ -21,6 +22,7 @@ export interface AssetTransferTxnSpec extends BaseTxnSpec {
   receiver: string
   amount: number
   clawbackTarget?: string
+  closeAssetTo?: string
 }
 
 export interface AssetOptInTxnSpec extends BaseTxnSpec {
@@ -32,6 +34,7 @@ export interface AssetOptOutTxnSpec extends BaseTxnSpec {
   type: 'asset_opt_out'
   assetId: number
   closeAssetTo: string
+  ensureZeroBalance?: boolean
 }
 
 export interface AssetCreateTxnSpec extends BaseTxnSpec {
@@ -41,6 +44,7 @@ export interface AssetCreateTxnSpec extends BaseTxnSpec {
   assetName?: string
   unitName?: string
   url?: string
+  metadataHash?: string
   defaultFrozen?: boolean
   manager?: string
   reserve?: string

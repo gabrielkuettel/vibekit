@@ -2,12 +2,13 @@
  * asset_destroy tool
  *
  * Destroys an Algorand Standard Asset (ASA).
- * The manager must execute this, and the creator must hold all units.
+ * Thin wrapper around sendTransactions() for asset destruction.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 import { parseArgs, type ToolContext } from '../types.js'
 import { resolveSender } from '../../lib/account-service.js'
+import { sendTransactions } from '../transactions/index.js'
 import { validateRequiredId } from '../../lib/validators.js'
 
 export const assetDestroyTool: Tool = {
@@ -53,18 +54,26 @@ export async function handleAssetDestroy(
 
   validateRequiredId(assetId, 'assetId')
 
-  const { address: senderAddress } = await resolveSender(algorand, config, sender)
-
-  const result = await algorand.send.assetDestroy({
-    sender: senderAddress,
-    assetId: BigInt(assetId),
-  })
+  const result = await sendTransactions(
+    {
+      transactions: [
+        {
+          type: 'asset_destroy',
+          assetId,
+          sender,
+        },
+      ],
+    },
+    algorand,
+    config,
+    resolveSender
+  )
 
   return {
     success: true,
     txId: result.txIds[0],
-    confirmedRound: Number(result.confirmation?.confirmedRound ?? 0),
+    confirmedRound: result.confirmedRound ?? 0,
     assetId,
-    network: config.network,
+    network: result.network,
   }
 }

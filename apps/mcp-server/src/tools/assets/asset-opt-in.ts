@@ -2,12 +2,13 @@
  * asset_opt_in tool
  *
  * Opts an account into receiving an Algorand Standard Asset (ASA).
- * This is required before an account can receive transfers of the asset.
+ * Thin wrapper around sendTransactions() for asset opt-in.
  */
 
 import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 import { parseArgs, type ToolContext } from '../types.js'
 import { resolveSender } from '../../lib/account-service.js'
+import { sendTransactions } from '../transactions/index.js'
 import { validateRequiredId } from '../../lib/validators.js'
 
 export const assetOptInTool: Tool = {
@@ -54,19 +55,30 @@ export async function handleAssetOptIn(
 
   validateRequiredId(assetId, 'assetId')
 
+  // Resolve sender for the response
   const { address: senderAddress } = await resolveSender(algorand, config, sender)
 
-  const result = await algorand.send.assetOptIn({
-    sender: senderAddress,
-    assetId: BigInt(assetId),
-  })
+  const result = await sendTransactions(
+    {
+      transactions: [
+        {
+          type: 'asset_opt_in',
+          assetId,
+          sender,
+        },
+      ],
+    },
+    algorand,
+    config,
+    resolveSender
+  )
 
   return {
     success: true,
     txId: result.txIds[0],
-    confirmedRound: Number(result.confirmation?.confirmedRound ?? 0),
+    confirmedRound: result.confirmedRound ?? 0,
     assetId,
     account: senderAddress,
-    network: config.network,
+    network: result.network,
   }
 }

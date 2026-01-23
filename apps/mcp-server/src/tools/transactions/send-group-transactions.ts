@@ -1,8 +1,8 @@
 /**
- * send_atomic_group tool
+ * send_group_transactions tool
  *
- * Sends multiple transactions as an atomic group. Either all transactions
- * succeed, or they all fail. Supports up to 16 transactions per group.
+ * Sends 1-16 transactions as an atomic group. Either all transactions
+ * succeed, or they all fail together.
  *
  * Supported transaction types:
  * - payment: ALGO transfers
@@ -23,19 +23,19 @@ import type { Tool } from '@modelcontextprotocol/sdk/types.js'
 import { parseArgs, type ToolContext } from '../types.js'
 import { resolveSender } from '../../lib/account-service.js'
 import { transactionsSchema } from './schema.js'
-import { buildTransactionGroup } from './shared.js'
+import { sendTransactions } from './shared.js'
 import type { TxnSpec } from './types.js'
 
-export const sendAtomicGroupTool: Tool = {
-  name: 'send_atomic_group',
-  description: `Send multiple transactions as an atomic group. All transactions succeed or all fail together. Maximum 16 transactions per group.
+export const sendGroupTransactionsTool: Tool = {
+  name: 'send_group_transactions',
+  description: `Send 1-16 transactions as an atomic group. All transactions succeed or all fail together.
 
 Transaction types and their fields:
-- payment: receiver, amount
-- asset_transfer: assetId, receiver, amount (optional: clawbackTarget)
+- payment: receiver, amount (optional: closeRemainderTo)
+- asset_transfer: assetId, receiver, amount (optional: clawbackTarget, closeAssetTo)
 - asset_opt_in: assetId
-- asset_opt_out: assetId, closeAssetTo
-- asset_create: total (optional: decimals, assetName, unitName, url, defaultFrozen, manager, reserve, freeze, clawback)
+- asset_opt_out: assetId, closeAssetTo (optional: ensureZeroBalance)
+- asset_create: total (optional: decimals, assetName, unitName, url, metadataHash, defaultFrozen, manager, reserve, freeze, clawback)
 - asset_config: assetId (optional: manager, reserve, freeze, clawback)
 - asset_freeze: assetId, freezeTarget, frozen
 - asset_destroy: assetId
@@ -98,13 +98,13 @@ Examples:
   },
 }
 
-interface AtomicGroupArgs {
+interface SendGroupTransactionsArgs {
   transactions: TxnSpec[]
   populateAppCallResources?: boolean
   coverAppCallInnerTransactionFees?: boolean
 }
 
-export async function handleSendAtomicGroup(
+export async function handleSendGroupTransactions(
   args: Record<string, unknown>,
   ctx: ToolContext
 ): Promise<{
@@ -117,63 +117,23 @@ export async function handleSendAtomicGroup(
   network: string
 }> {
   const { algorand, config } = ctx
-  const {
-    transactions,
-    populateAppCallResources = true,
-    coverAppCallInnerTransactionFees = false,
-  } = parseArgs<AtomicGroupArgs>(args)
+  const { transactions, populateAppCallResources, coverAppCallInnerTransactionFees } =
+    parseArgs<SendGroupTransactionsArgs>(args)
 
-  if (!transactions || transactions.length === 0) {
-    throw new Error('At least one transaction is required')
-  }
-
-  if (transactions.length > 16) {
-    throw new Error('Maximum 16 transactions per atomic group')
-  }
-
-  // Register signers for all unique senders
-  const uniqueSenders = new Set<string | undefined>()
-  for (const txn of transactions) {
-    uniqueSenders.add(txn.sender)
-  }
-
-  const senderAddresses = new Map<string | undefined, string>()
-  for (const sender of uniqueSenders) {
-    const { address } = await resolveSender(algorand, config, sender)
-    senderAddresses.set(sender, address)
-  }
-
-  const getSender = (sender?: string): string => {
-    return senderAddresses.get(sender)!
-  }
-
-  // Build the transaction group
-  const composer = algorand.newGroup()
-  await buildTransactionGroup(algorand, composer, transactions, getSender)
-
-  // Send the group
-  const result = await composer.send({
-    populateAppCallResources,
-    coverAppCallInnerTransactionFees,
-  })
-
-  // Extract return values for ABI method calls
-  const returns: unknown[] = []
-  if (result.returns && result.returns.length > 0) {
-    for (const ret of result.returns) {
-      returns.push(ret.returnValue)
-    }
-  }
+  const result = await sendTransactions(
+    { transactions, populateAppCallResources, coverAppCallInnerTransactionFees },
+    algorand,
+    config,
+    resolveSender
+  )
 
   return {
     success: true,
     groupId: result.groupId,
     txIds: result.txIds,
-    confirmedRound: result.confirmations?.[0]?.confirmedRound
-      ? Number(result.confirmations[0].confirmedRound)
-      : undefined,
-    returns: returns.length > 0 ? returns : undefined,
+    confirmedRound: result.confirmedRound,
+    returns: result.returns,
     transactionCount: transactions.length,
-    network: config.network,
+    network: result.network,
   }
 }
