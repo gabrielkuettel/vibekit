@@ -12,6 +12,7 @@ import { TestNetDispenser, NoDispenser } from '@vibekit/dispenser-testnet'
 import type { AccountProvider, AccountProviderType } from '@vibekit/provider-interface'
 import { VaultProvider } from '@vibekit/provider-vault'
 import { KeyringProvider } from '@vibekit/provider-keyring'
+import { WalletConnectProvider } from '@vibekit/provider-walletconnect'
 import { NETWORK_PRESETS, type NetworkType, type NetworkPreset } from '../config.js'
 import type { NetworkConfig, InitConfig, VaultProviderConfig } from './types.js'
 
@@ -86,7 +87,9 @@ export class AppState {
 
   private vaultProvider: VaultProvider | null = null
   private keyringProvider: KeyringProvider | null = null
+  private walletConnectProvider: WalletConnectProvider | null = null
   private vaultConfig: VaultProviderConfig | null = null
+  private walletConnectProjectId: string | null = null
   private dispenser: DispenserProvider | null = null
   private dispenserToken: string | null = null
   private activeAccount: string | null = null
@@ -99,6 +102,7 @@ export class AppState {
   initialize(config?: InitConfig): void {
     this.vaultConfig = config?.vaultConfig || null
     this.dispenserToken = config?.dispenserToken || null
+    this.walletConnectProjectId = process.env.WALLETCONNECT_PROJECT_ID || null
 
     const networkEnv = (process.env.ALGORAND_NETWORK || 'localnet') as NetworkType
     const preset = NETWORK_PRESETS[networkEnv] || NETWORK_PRESETS.localnet
@@ -229,6 +233,13 @@ export class AppState {
       return this.keyringProvider
     }
 
+    if (targetType === 'walletconnect') {
+      throw new Error(
+        'Use getWalletConnectProvider() to get the WalletConnect provider.\n' +
+          'The WalletConnect provider requires async initialization.'
+      )
+    }
+
     throw new Error(`Unknown provider type: ${targetType}`)
   }
 
@@ -248,6 +259,55 @@ export class AppState {
   }
 
   /**
+   * Check if WalletConnect provider is available.
+   * WalletConnect is available if a project ID is configured and not on localnet.
+   */
+  isWalletConnectAvailable(): boolean {
+    return this.walletConnectProjectId !== null && !this.isLocalnet()
+  }
+
+  /**
+   * Get the WalletConnect provider.
+   * Initializes the provider on first call.
+   *
+   * @throws Error if WalletConnect is not configured or on localnet
+   */
+  async getWalletConnectProvider(): Promise<WalletConnectProvider> {
+    if (!this.walletConnectProjectId) {
+      throw new Error(
+        'WalletConnect is not configured.\n' +
+          'Set WALLETCONNECT_PROJECT_ID environment variable.\n' +
+          'Get a project ID at https://cloud.walletconnect.com'
+      )
+    }
+
+    if (this.isLocalnet()) {
+      throw new Error(
+        'WalletConnect is not available on localnet.\n' +
+          'Mobile wallets cannot connect to your local network.\n' +
+          'Switch to testnet or mainnet: switch_network testnet'
+      )
+    }
+
+    if (!this.walletConnectProvider) {
+      this.walletConnectProvider = new WalletConnectProvider({
+        projectId: this.walletConnectProjectId,
+        network: this.getWalletConnectNetwork(),
+      })
+      await this.walletConnectProvider.initialize()
+    }
+
+    return this.walletConnectProvider
+  }
+
+  /**
+   * Get the WalletConnect network based on current network config.
+   */
+  private getWalletConnectNetwork(): 'mainnet' | 'testnet' {
+    return this.networkConfig?.network === 'mainnet' ? 'mainnet' : 'testnet'
+  }
+
+  /**
    * Check if any provider is available.
    */
   isProviderAvailable(type?: AccountProviderType): boolean {
@@ -256,6 +316,9 @@ export class AppState {
     }
     if (type === 'keyring') {
       return true
+    }
+    if (type === 'walletconnect') {
+      return this.isWalletConnectAvailable()
     }
     return this.getAvailableProviderTypes().length > 0
   }
@@ -271,6 +334,9 @@ export class AppState {
       providers.push('vault')
     }
     providers.push('keyring')
+    if (this.isWalletConnectAvailable()) {
+      providers.push('walletconnect')
+    }
     return providers
   }
 
@@ -368,6 +434,8 @@ export class AppState {
     // Provider fields
     this.vaultProvider = null
     this.keyringProvider = null
+    this.walletConnectProvider = null
     this.vaultConfig = null
+    this.walletConnectProjectId = null
   }
 }

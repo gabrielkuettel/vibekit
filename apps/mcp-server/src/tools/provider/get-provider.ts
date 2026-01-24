@@ -43,6 +43,9 @@ export async function handleGetProvider(
     keyring: {
       available: appState.isProviderAvailable('keyring'),
     },
+    walletconnect: {
+      available: appState.isProviderAvailable('walletconnect'),
+    },
   }
 
   // Determine hint based on state

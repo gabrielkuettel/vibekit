@@ -27,7 +27,7 @@ export const switchAccountTool: Tool = {
       },
       provider: {
         type: 'string',
-        enum: ['vault', 'keyring'],
+        enum: ['vault', 'keyring', 'walletconnect'],
         description:
           'Optional: Specify which provider the account belongs to. ' +
           'Required if accounts with the same name exist in multiple providers.',

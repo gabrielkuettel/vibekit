@@ -19,6 +19,7 @@ import { providerTools } from './provider/index.js'
 import { indexerTools } from './indexer/index.js'
 import { transactionTools } from './transactions/index.js'
 import { utilityTools } from './utilities/index.js'
+import { walletConnectTools } from './walletconnect/index.js'
 
 // Combine all tool registrations
 const allToolRegistrations: ToolRegistration[] = [
@@ -32,6 +33,7 @@ const allToolRegistrations: ToolRegistration[] = [
   ...indexerTools,
   ...transactionTools,
   ...utilityTools,
+  ...walletConnectTools,
 ]
 
 // Export tool definitions for MCP server registration

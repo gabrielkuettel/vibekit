@@ -1,0 +1,31 @@
+{
+  "name": "@vibekit/provider-walletconnect",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@vibekit/provider-interface": "workspace:*",
+    "@walletconnect/sign-client": "^2.11.0",
+    "@walletconnect/types": "^2.11.0",
+    "algosdk": "^3.5.2",
+    "qrcode": "^1.5.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/qrcode": "^1.5.5",
+    "typescript": "^5.0.0"
+  }
+}
