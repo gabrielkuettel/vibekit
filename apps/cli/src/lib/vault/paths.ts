@@ -1,13 +1,7 @@
-// Vibekit config paths - all stored flat in ~/.config/vibekit
+// Vault-specific paths (CLI only)
 
 import { join } from 'path'
-import { homedir } from 'os'
-import { existsSync } from 'fs'
-import { mkdir } from 'fs/promises'
-
-export function getVibekitDir(): string {
-  return join(homedir(), '.config', 'vibekit')
-}
+import { getVibekitDir } from '@vibekit/config'
 
 export function getDockerComposePath(): string {
   return join(getVibekitDir(), 'vault-docker-compose.yml')
@@ -20,17 +14,6 @@ export function getVaultSealKeysPath(): string {
 /** @deprecated Legacy token file path, kept for migration only */
 export function getVaultTokenPath(): string {
   return join(getVibekitDir(), 'vault-root-token')
-}
-
-export async function ensureVibekitDir(): Promise<void> {
-  const dir = getVibekitDir()
-  if (!existsSync(dir)) {
-    await mkdir(dir, { recursive: true, mode: 0o700 })
-  }
-}
-
-export function isVibekitInitialized(): boolean {
-  return existsSync(getVibekitDir())
 }
 
 export const VAULT_URL = 'http://localhost:8200'

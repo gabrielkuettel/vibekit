@@ -13,11 +13,15 @@
  * state (balances, etc.). The MCP handler queries balances using a fresh
  * AlgorandClient.
  *
- * State storage:
- * - All account data is stored in keyring entries (no external files)
- * - account:{name}:mnemonic → mnemonic phrase
- * - account:{name}:privateKey → encoded private key
- * - account:{name}:metadata → JSON with name, address, createdAt
+ * State storage (hybrid model):
+ * - Secrets stored in keyring (OS-protected):
+ *   - account:{name}:mnemonic → mnemonic phrase
+ *   - account:{name}:privateKey → encoded private key
+ * - Metadata stored in SQLite (~/.config/vibekit/accounts.db):
+ *   - accounts table with name, address, created_at
+ *
+ * This hybrid approach avoids keyring prompts for listing/reading metadata
+ * while keeping secrets secure in the OS keyring.
  */
 
 import type {
@@ -30,8 +34,6 @@ import {
   createKeyringStore,
   accountMnemonicKey,
   accountPrivateKeyKey,
-  accountMetadataKey,
-  ACCOUNT_KEY_PREFIX,
   type SecretStore,
 } from '@vibekit/keyring'
 import {
@@ -42,9 +44,16 @@ import {
   decodePrivateKey,
   addressFromPrivateKey,
 } from './keys.js'
+import {
+  listAccountsFromDb,
+  getAccountFromDb,
+  insertAccountToDb,
+  deleteAccountFromDb,
+  hasAccountInDb,
+} from './db.js'
 
 /**
- * Account metadata stored in keyring.
+ * Account metadata stored in SQLite.
  */
 interface AccountMetadata {
   name: string
@@ -55,12 +64,11 @@ interface AccountMetadata {
 /**
  * Keyring-based account provider.
  *
- * Uses the OS keyring to store:
- * - Mnemonics (for CLI display/backup)
- * - Private keys (for fast signing)
- * - Metadata (name, address, createdAt)
+ * Uses a hybrid storage model:
+ * - OS keyring for secrets (mnemonics, private keys)
+ * - SQLite for metadata (name, address, createdAt)
  *
- * All state is in keyring entries - no external files needed.
+ * This avoids keyring prompts when listing accounts while keeping secrets secure.
  */
 export class KeyringProvider implements AccountProvider {
   readonly type: AccountProviderType = 'keyring'
@@ -73,29 +81,13 @@ export class KeyringProvider implements AccountProvider {
 
   /**
    * List all accounts.
-   * Scans keyring for metadata entries to discover accounts.
+   * Reads from SQLite index
    */
   async listAccounts(): Promise<AccountInfo[]> {
-    const metadataKeys = await this.keyring.findKeys(ACCOUNT_KEY_PREFIX)
-    const metadataEntries = metadataKeys.filter((key) => key.endsWith(':metadata'))
-
-    const accounts: AccountInfo[] = []
-    for (const key of metadataEntries) {
-      const metadataJson = await this.keyring.get(key)
-      if (metadataJson) {
-        try {
-          const metadata = JSON.parse(metadataJson) as AccountMetadata
-          accounts.push({
-            name: metadata.name,
-            address: metadata.address,
-          })
-        } catch {
-          // Skip entries with malformed JSON metadata
-        }
-      }
-    }
-
-    return accounts
+    return listAccountsFromDb().map((row) => ({
+      name: row.name,
+      address: row.address,
+    }))
   }
 
   /**
@@ -105,27 +97,28 @@ export class KeyringProvider implements AccountProvider {
    * @param name - Account name
    */
   async createAccount(name: string): Promise<AccountInfo> {
-    const existingMetadata = await this.keyring.get(accountMetadataKey(name))
-    if (existingMetadata) {
-      const metadata = JSON.parse(existingMetadata) as AccountMetadata
+    const existing = getAccountFromDb(name)
+    if (existing) {
       return {
-        name: metadata.name,
-        address: metadata.address,
+        name: existing.name,
+        address: existing.address,
         isNew: false,
       }
     }
 
     const key = generateKey()
+    const createdAt = new Date().toISOString()
 
-    await this.keyring.set(accountMnemonicKey(name), key.mnemonic)
-    await this.keyring.set(accountPrivateKeyKey(name), encodePrivateKey(key.privateKey))
+    insertAccountToDb(name, key.address, createdAt)
 
-    const metadata: AccountMetadata = {
-      name,
-      address: key.address,
-      createdAt: new Date().toISOString(),
+    try {
+      await this.keyring.set(accountMnemonicKey(name), key.mnemonic)
+      await this.keyring.set(accountPrivateKeyKey(name), encodePrivateKey(key.privateKey))
+    } catch (err) {
+      // Rollback SQLite on keyring failure
+      deleteAccountFromDb(name)
+      throw err
     }
-    await this.keyring.set(accountMetadataKey(name), JSON.stringify(metadata))
 
     return {
       name,
@@ -138,17 +131,12 @@ export class KeyringProvider implements AccountProvider {
    * Get account by name.
    */
   async getAccount(name: string): Promise<AccountInfo | null> {
-    const metadataJson = await this.keyring.get(accountMetadataKey(name))
-    if (!metadataJson) return null
+    const row = getAccountFromDb(name)
+    if (!row) return null
 
-    try {
-      const metadata = JSON.parse(metadataJson) as AccountMetadata
-      return {
-        name: metadata.name,
-        address: metadata.address,
-      }
-    } catch {
-      return null
+    return {
+      name: row.name,
+      address: row.address,
     }
   }
 
@@ -184,13 +172,13 @@ export class KeyringProvider implements AccountProvider {
    * Returns name, address, createdAt.
    */
   async getAccountMetadata(name: string): Promise<AccountMetadata | null> {
-    const metadataJson = await this.keyring.get(accountMetadataKey(name))
-    if (!metadataJson) return null
+    const row = getAccountFromDb(name)
+    if (!row) return null
 
-    try {
-      return JSON.parse(metadataJson) as AccountMetadata
-    } catch {
-      return null
+    return {
+      name: row.name,
+      address: row.address,
+      createdAt: row.created_at,
     }
   }
 
@@ -201,22 +189,23 @@ export class KeyringProvider implements AccountProvider {
    * @param mnemonic - 25-word Algorand mnemonic
    */
   async importAccount(name: string, mnemonic: string): Promise<AccountInfo> {
-    const existingMetadata = await this.keyring.get(accountMetadataKey(name))
-    if (existingMetadata) {
+    if (hasAccountInDb(name)) {
       throw new Error(`Account already exists: ${name}`)
     }
 
     const key = keyFromMnemonic(mnemonic)
+    const createdAt = new Date().toISOString()
 
-    await this.keyring.set(accountMnemonicKey(name), key.mnemonic)
-    await this.keyring.set(accountPrivateKeyKey(name), encodePrivateKey(key.privateKey))
+    insertAccountToDb(name, key.address, createdAt)
 
-    const metadata: AccountMetadata = {
-      name,
-      address: key.address,
-      createdAt: new Date().toISOString(),
+    try {
+      await this.keyring.set(accountMnemonicKey(name), key.mnemonic)
+      await this.keyring.set(accountPrivateKeyKey(name), encodePrivateKey(key.privateKey))
+    } catch (err) {
+      // Rollback SQLite on keyring failure
+      deleteAccountFromDb(name)
+      throw err
     }
-    await this.keyring.set(accountMetadataKey(name), JSON.stringify(metadata))
 
     return {
       name,
@@ -227,11 +216,12 @@ export class KeyringProvider implements AccountProvider {
 
   /**
    * Remove an account.
+   * Deletes keyring secrets first (critical), then SQLite metadata.
    */
   async removeAccount(name: string): Promise<void> {
     await this.keyring.delete(accountMnemonicKey(name))
     await this.keyring.delete(accountPrivateKeyKey(name))
-    await this.keyring.delete(accountMetadataKey(name))
+    deleteAccountFromDb(name)
   }
 
   /**

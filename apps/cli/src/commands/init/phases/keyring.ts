@@ -7,6 +7,7 @@
 
 import * as p from '@clack/prompts'
 import { isKeyringAvailable } from '@vibekit/keyring'
+import { initAccountsDb } from '@vibekit/provider-keyring'
 import type { KeyringSetupStatus } from '../../../types'
 
 export interface KeyringBootstrapResult {
@@ -30,6 +31,9 @@ export async function keyringBootstrapStep(): Promise<KeyringBootstrapResult> {
       p.log.info('Headless systems should use Vault instead.')
       return { status: 'unavailable', error: 'Keyring not accessible' }
     }
+
+    // Initialize accounts database
+    initAccountsDb()
 
     s.stop('Keyring ready')
     return { status: 'completed' }

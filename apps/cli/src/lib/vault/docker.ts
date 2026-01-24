@@ -4,7 +4,8 @@ import { exec as execCallback } from 'child_process'
 import { promisify } from 'util'
 import { existsSync } from 'fs'
 import { writeFile } from 'fs/promises'
-import { getDockerComposePath, ensureVibekitDir, VAULT_URL } from './paths'
+import { ensureVibekitDir } from '@vibekit/config'
+import { getDockerComposePath, VAULT_URL } from './paths'
 import type { VaultStatus } from './types'
 
 const exec = promisify(execCallback)

@@ -12,9 +12,10 @@
     },
     "apps/cli": {
       "name": "@vibekit/cli",
-      "version": "0.1.0",
+      "version": "0.1.2",
       "dependencies": {
         "@clack/prompts": "^0.8.2",
+        "@vibekit/config": "workspace:*",
         "@vibekit/keyring": "workspace:*",
         "@vibekit/mcp-server": "workspace:*",
         "@vibekit/provider-interface": "workspace:*",
@@ -62,6 +63,14 @@
         "astro": "^5.2.3",
         "sharp": "^0.33.4",
         "tailwindcss": "^3.4.17",
+      },
+    },
+    "packages/config": {
+      "name": "@vibekit/config",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0",
       },
     },
     "packages/dispenser-interface": {
@@ -120,11 +129,13 @@
       "version": "0.1.0",
       "dependencies": {
         "@algorandfoundation/algokit-utils": "^9.2.0",
+        "@vibekit/config": "workspace:*",
         "@vibekit/keyring": "workspace:*",
         "@vibekit/provider-interface": "workspace:*",
         "algosdk": "^3.5.2",
       },
       "devDependencies": {
+        "@types/bun": "latest",
         "@types/node": "^20.0.0",
         "typescript": "^5.0.0",
       },
@@ -459,6 +470,8 @@
     "@ungap/structured-clone": ["@ungap/structured-clone@1.3.0", "", {}, "sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g=="],
 
     "@vibekit/cli": ["@vibekit/cli@workspace:apps/cli"],
+
+    "@vibekit/config": ["@vibekit/config@workspace:packages/config"],
 
     "@vibekit/dispenser-interface": ["@vibekit/dispenser-interface@workspace:packages/dispenser-interface"],
 
