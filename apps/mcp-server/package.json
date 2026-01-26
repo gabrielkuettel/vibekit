@@ -15,6 +15,7 @@
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^9.2.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "@vibekit/db": "workspace:*",
     "@vibekit/dispenser-interface": "workspace:*",
     "@vibekit/dispenser-kmd": "workspace:*",
     "@vibekit/dispenser-testnet": "workspace:*",

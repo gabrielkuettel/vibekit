@@ -4,6 +4,11 @@ import { existsSync } from 'fs'
 import { VAULT_URL, getDockerComposePath } from './paths'
 import type { VaultSealData, VaultInitResult, McpTokenInfo } from './types'
 import { createKeyringStore, KEYRING_KEYS } from '@vibekit/keyring'
+import {
+  setGithubToken as dbSetGithubToken,
+  getGithubToken as dbGetGithubToken,
+  hasGithubToken as dbHasGithubToken,
+} from '@vibekit/db'
 import { lazy } from '../../utils/lazy'
 
 const getKeyring = lazy(() => createKeyringStore())
@@ -298,15 +303,15 @@ export async function deleteMcpToken(): Promise<void> {
   await getKeyring().delete(KEYRING_KEYS.VAULT_MCP_TOKEN)
 }
 
-// GitHub token - stored in OS keyring
-export async function saveGithubToken(token: string): Promise<void> {
-  await getKeyring().set(KEYRING_KEYS.GITHUB_TOKEN, token)
+// GitHub token - stored in SQLite (low-grade secret)
+export function saveGithubToken(token: string): void {
+  dbSetGithubToken(token)
 }
 
-export async function loadGithubToken(): Promise<string | null> {
-  return getKeyring().get(KEYRING_KEYS.GITHUB_TOKEN)
+export function loadGithubToken(): string | null {
+  return dbGetGithubToken()
 }
 
-export async function hasGithubToken(): Promise<boolean> {
-  return getKeyring().has(KEYRING_KEYS.GITHUB_TOKEN)
+export function hasGithubToken(): boolean {
+  return dbHasGithubToken()
 }

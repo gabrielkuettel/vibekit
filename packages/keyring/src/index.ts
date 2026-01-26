@@ -12,5 +12,4 @@ export {
   ACCOUNT_KEY_PREFIX,
   accountMnemonicKey,
   accountPrivateKeyKey,
-  accountMetadataKey,
 } from './types.js'

@@ -9,9 +9,7 @@ import pc from 'picocolors'
 
 import { performDispenserLogin } from '../../lib/dispenser/login'
 import { hasDispenserToken } from '../../lib/dispenser'
-import { createKeyringStore, KEYRING_KEYS } from '@vibekit/keyring'
-import { lazy } from '../../utils/lazy'
-import { withSpinner } from '../../utils/spinner'
+import { deleteDispenserToken } from '@vibekit/db'
 import {
   DISPENSER_HELP,
   confirmReplaceDispenserToken,
@@ -20,12 +18,10 @@ import {
   displayLoginSuccess,
 } from './prompts'
 
-const getStore = lazy(() => createKeyringStore())
-
 async function dispenserLogin(): Promise<void> {
   p.intro(pc.cyan('TestNet Dispenser Login'))
 
-  if (await hasDispenserToken()) {
+  if (hasDispenserToken()) {
     const proceed = await confirmReplaceDispenserToken()
     if (proceed === null || !proceed) {
       p.log.info('Login cancelled')
@@ -54,7 +50,7 @@ async function dispenserLogin(): Promise<void> {
 async function dispenserLogout(): Promise<void> {
   p.intro(pc.cyan('Dispenser Logout'))
 
-  if (!(await hasDispenserToken())) {
+  if (!hasDispenserToken()) {
     p.log.info('No dispenser token found')
     return
   }
@@ -65,11 +61,7 @@ async function dispenserLogout(): Promise<void> {
     return
   }
 
-  await withSpinner(
-    { start: 'Removing token...', success: 'Token removed', fail: 'Failed to remove token' },
-    () => getStore().delete(KEYRING_KEYS.DISPENSER_TOKEN)
-  )
-
+  deleteDispenserToken()
   p.outro(pc.green('Logged out of dispenser'))
 }
 

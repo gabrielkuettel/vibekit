@@ -3,6 +3,7 @@
  */
 
 import { ACCOUNT_KEY_PREFIX, createKeyringStore, KEYRING_KEYS } from '@vibekit/keyring'
+import { deleteGithubToken, deleteDispenserToken } from '@vibekit/db'
 
 export interface KeyringClearResult {
   cleared: number
@@ -10,19 +11,15 @@ export interface KeyringClearResult {
 }
 
 /**
- * Clear all vibekit secrets from OS keyring
+ * Clear all vibekit secrets from OS keyring and SQLite
  */
 export async function clearKeyringSecrets(): Promise<KeyringClearResult> {
   const keyring = createKeyringStore()
   const errors: string[] = []
   let cleared = 0
 
-  // Clear all known keys
-  const keysToDelete = [
-    KEYRING_KEYS.VAULT_MCP_TOKEN,
-    KEYRING_KEYS.GITHUB_TOKEN,
-    KEYRING_KEYS.DISPENSER_TOKEN,
-  ]
+  // Clear high-grade secrets from keyring (Vault MCP token only)
+  const keysToDelete = [KEYRING_KEYS.VAULT_MCP_TOKEN]
 
   for (const key of keysToDelete) {
     try {
@@ -37,7 +34,7 @@ export async function clearKeyringSecrets(): Promise<KeyringClearResult> {
     }
   }
 
-  // Clear account keys (find all keys starting with account:)
+  // Clear account keys from keyring (find all keys starting with account:)
   try {
     const accountKeys = await keyring.findKeys(ACCOUNT_KEY_PREFIX)
     for (const key of accountKeys) {
@@ -52,6 +49,21 @@ export async function clearKeyringSecrets(): Promise<KeyringClearResult> {
     }
   } catch {
     // findKeys may fail if keyring is unavailable
+  }
+
+  // Clear low-grade secrets from SQLite
+  try {
+    deleteGithubToken()
+    cleared++
+  } catch {
+    // Ignore errors - token may not exist
+  }
+
+  try {
+    deleteDispenserToken()
+    cleared++
+  } catch {
+    // Ignore errors - token may not exist
   }
 
   return { cleared, errors }

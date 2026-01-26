@@ -8,15 +8,15 @@
 export * from './auth'
 export * from './login'
 
-import { createKeyringStore, KEYRING_KEYS } from '@vibekit/keyring'
-import { lazy } from '../../utils/lazy'
+import {
+  hasDispenserToken as dbHasDispenserToken,
+  getDispenserToken,
+} from '@vibekit/db'
 
-const getStore = lazy(() => createKeyringStore())
-
-export async function hasDispenserToken(): Promise<boolean> {
-  return getStore().has(KEYRING_KEYS.DISPENSER_TOKEN)
+export function hasDispenserToken(): boolean {
+  return dbHasDispenserToken()
 }
 
-export async function loadDispenserToken(): Promise<string | null> {
-  return getStore().get(KEYRING_KEYS.DISPENSER_TOKEN)
+export function loadDispenserToken(): string | null {
+  return getDispenserToken()
 }

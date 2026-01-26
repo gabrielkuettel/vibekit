@@ -21,4 +21,4 @@ export {
   addressFromPrivateKey,
 } from './keys.js'
 export type { GeneratedKey } from './keys.js'
-export { initAccountsDb } from './db.js'
+export { initDb as initAccountsDb } from '@vibekit/db'

@@ -32,7 +32,7 @@ async function confirmDispenserAuth(): Promise<boolean> {
 }
 
 export async function dispenserLoginStep(): Promise<StepStatus> {
-  if (await hasDispenserToken()) {
+  if (hasDispenserToken()) {
     return 'completed'
   }
 

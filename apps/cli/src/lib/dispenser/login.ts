@@ -7,7 +7,7 @@
 import * as readline from 'readline'
 
 import { requestDeviceCode, pollForToken, type DeviceCodeResponse } from './auth'
-import { createKeyringStore, KEYRING_KEYS } from '@vibekit/keyring'
+import { setDispenserToken } from '@vibekit/db'
 import { copyToClipboard } from '../../utils/clipboard'
 
 export interface SpinnerLike {
@@ -107,15 +107,6 @@ export async function performDispenserLogin(
   cleanup()
   callbacks.onSuccess()
 
-  try {
-    const store = createKeyringStore()
-    await store.set(KEYRING_KEYS.DISPENSER_TOKEN, token)
-    return { token }
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error('Failed to save token')
-    if (callbacks.onError(err)) {
-      throw err
-    }
-    return { token: null, error: err }
-  }
+  setDispenserToken(token)
+  return { token }
 }

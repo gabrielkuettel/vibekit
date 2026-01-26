@@ -50,7 +50,7 @@ import {
   insertAccountToDb,
   deleteAccountFromDb,
   hasAccountInDb,
-} from './db.js'
+} from '@vibekit/db'
 
 /**
  * Account metadata stored in SQLite.

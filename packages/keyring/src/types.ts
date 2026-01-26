@@ -45,14 +45,13 @@ export interface SecretStore {
 
 /**
  * Keys used by vibekit in the keyring.
+ *
+ * Only high-grade secrets (transaction signing) are stored in keyring.
+ * Low-grade secrets (GitHub PAT, dispenser token) are stored in SQLite via @vibekit/db.
  */
 export const KEYRING_KEYS = {
   /** Vault MCP token - used by MCP server for signing */
   VAULT_MCP_TOKEN: 'config:vault-mcp-token',
-  /** GitHub PAT - used for code search */
-  GITHUB_TOKEN: 'config:github-token',
-  /** TestNet dispenser JWT - used for funding accounts */
-  DISPENSER_TOKEN: 'config:dispenser-token',
 } as const
 
 /**
@@ -72,11 +71,4 @@ export function accountMnemonicKey(name: string): string {
  */
 export function accountPrivateKeyKey(name: string): string {
   return `${ACCOUNT_KEY_PREFIX}${name}:privateKey`
-}
-
-/**
- * Build a keyring key for an account's metadata.
- */
-export function accountMetadataKey(name: string): string {
-  return `${ACCOUNT_KEY_PREFIX}${name}:metadata`
 }

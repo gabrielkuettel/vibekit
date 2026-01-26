@@ -1,5 +1,5 @@
 {
-  "name": "@vibekit/provider-keyring",
+  "name": "@vibekit/db",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -17,12 +17,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@algorandfoundation/algokit-utils": "^9.2.0",
-    "@vibekit/config": "workspace:*",
-    "@vibekit/db": "workspace:*",
-    "@vibekit/keyring": "workspace:*",
-    "@vibekit/provider-interface": "workspace:*",
-    "algosdk": "^3.5.2"
+    "@vibekit/config": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "latest",

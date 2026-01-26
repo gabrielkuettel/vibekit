@@ -18,6 +18,7 @@
   "dependencies": {
     "@clack/prompts": "^0.8.2",
     "@vibekit/config": "workspace:*",
+    "@vibekit/db": "workspace:*",
     "@vibekit/keyring": "workspace:*",
     "@vibekit/mcp-server": "workspace:*",
     "@vibekit/provider-interface": "workspace:*",

@@ -92,7 +92,7 @@ function buildAgentConfig(
 
 export async function generateConfigsStep(context: SetupContext): Promise<void> {
   if (context.githubPat) {
-    await saveGithubToken(context.githubPat)
+    saveGithubToken(context.githubPat)
   }
 
   for (const agent of getEnabledAgents(context.agents)) {

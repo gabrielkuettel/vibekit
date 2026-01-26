@@ -16,6 +16,7 @@
       "dependencies": {
         "@clack/prompts": "^0.8.2",
         "@vibekit/config": "workspace:*",
+        "@vibekit/db": "workspace:*",
         "@vibekit/keyring": "workspace:*",
         "@vibekit/mcp-server": "workspace:*",
         "@vibekit/provider-interface": "workspace:*",
@@ -35,6 +36,7 @@
       "dependencies": {
         "@algorandfoundation/algokit-utils": "^9.2.0",
         "@modelcontextprotocol/sdk": "^1.0.0",
+        "@vibekit/db": "workspace:*",
         "@vibekit/dispenser-interface": "workspace:*",
         "@vibekit/dispenser-kmd": "workspace:*",
         "@vibekit/dispenser-testnet": "workspace:*",
@@ -69,6 +71,18 @@
       "name": "@vibekit/config",
       "version": "0.1.0",
       "devDependencies": {
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0",
+      },
+    },
+    "packages/db": {
+      "name": "@vibekit/db",
+      "version": "0.1.0",
+      "dependencies": {
+        "@vibekit/config": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
         "@types/node": "^20.0.0",
         "typescript": "^5.0.0",
       },
@@ -130,6 +144,7 @@
       "dependencies": {
         "@algorandfoundation/algokit-utils": "^9.2.0",
         "@vibekit/config": "workspace:*",
+        "@vibekit/db": "workspace:*",
         "@vibekit/keyring": "workspace:*",
         "@vibekit/provider-interface": "workspace:*",
         "algosdk": "^3.5.2",
@@ -472,6 +487,8 @@
     "@vibekit/cli": ["@vibekit/cli@workspace:apps/cli"],
 
     "@vibekit/config": ["@vibekit/config@workspace:packages/config"],
+
+    "@vibekit/db": ["@vibekit/db@workspace:packages/db"],
 
     "@vibekit/dispenser-interface": ["@vibekit/dispenser-interface@workspace:packages/dispenser-interface"],
 

@@ -96,7 +96,7 @@ async function promptForPat(): Promise<string | undefined> {
 }
 
 export async function setupGithubPatStep(): Promise<GitHubPATResult> {
-  if (await hasGithubToken()) {
+  if (hasGithubToken()) {
     p.log.success('GitHub PAT already configured')
     return { configureGithub: true, pat: undefined }
   }

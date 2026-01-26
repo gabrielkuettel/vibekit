@@ -15,6 +15,7 @@ import { getConfig, validateConfig } from './config.js'
 import { appState, type VaultProviderConfig } from './state/index.js'
 import { toolDefinitions, handleToolCall } from './tools/index.js'
 import { createKeyringStore, KEYRING_KEYS, type SecretStore } from '@vibekit/keyring'
+import { getDispenserToken, getGithubToken } from '@vibekit/db'
 
 let keyringStore: SecretStore | null = null
 
@@ -33,17 +34,17 @@ async function readMcpToken(): Promise<string | null> {
 }
 
 /**
- * Read the TestNet dispenser token from keyring.
+ * Read the TestNet dispenser token from SQLite.
  */
-async function readDispenserToken(): Promise<string | null> {
-  return getKeyring().get(KEYRING_KEYS.DISPENSER_TOKEN)
+function readDispenserToken(): string | null {
+  return getDispenserToken()
 }
 
 /**
- * Read the GitHub token from keyring.
+ * Read the GitHub token from SQLite.
  */
-async function readGithubToken(): Promise<string | null> {
-  return getKeyring().get(KEYRING_KEYS.GITHUB_TOKEN)
+function readGithubToken(): string | null {
+  return getGithubToken()
 }
 
 /**
@@ -79,7 +80,7 @@ async function getVaultConfig(): Promise<VaultProviderConfig | null> {
  * Exported for use by the CLI's `vibekit mcp` command.
  */
 export async function startMcpServer(): Promise<void> {
-  const githubTokenFromKeyring = await readGithubToken()
+  const githubTokenFromKeyring = readGithubToken()
   const config = getConfig({ githubTokenFromFile: githubTokenFromKeyring })
 
   try {
@@ -89,7 +90,7 @@ export async function startMcpServer(): Promise<void> {
     // Continue anyway - some tools may still work
   }
 
-  const dispenserToken = await readDispenserToken()
+  const dispenserToken = readDispenserToken()
   const vaultConfig = await getVaultConfig()
 
   appState.initialize({

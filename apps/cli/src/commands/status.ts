@@ -204,12 +204,12 @@ export async function commandStatus(): Promise<void> {
   // TestNet Dispenser
   console.log()
   console.log(pc.bold('TestNet Dispenser:'))
-  if (!(await hasDispenserToken())) {
+  if (!hasDispenserToken()) {
     console.log(`  Token: ${pc.yellow('Not configured')}`)
     console.log(`  ${pc.dim('Run "vibekit dispenser login" to authenticate')}`)
   } else {
     try {
-      const token = await loadDispenserToken()
+      const token = loadDispenserToken()
       if (token) {
         const payload = decodeJwtPayload(token)
 
@@ -236,7 +236,7 @@ export async function commandStatus(): Promise<void> {
   // GitHub
   console.log()
   console.log(pc.bold('GitHub:'))
-  if (await hasGithubToken()) {
+  if (hasGithubToken()) {
     console.log(`  Token: ${pc.green('Configured')}`)
   } else {
     console.log(`  Token: ${pc.yellow('Not configured')}`)
