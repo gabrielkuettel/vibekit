@@ -3,11 +3,11 @@ title: MCP Server
 description: Giving your AI hands
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 Skills teach your AI how to write Algorand code. The MCP server lets it actually do things: deploy contracts, call methods, create accounts, manage assets.
 
-MCP (Model Context Protocol) is a standard for giving AI tools access to external systems. VibeKit's MCP server exposes 44 blockchain operations that your AI can call directly.
+MCP (Model Context Protocol) is a standard for giving AI tools access to external systems. VibeKit's MCP server exposes 45 blockchain operations that your AI can call directly.
 
 ## How it works
 
@@ -15,106 +15,99 @@ The server starts automatically when you open a VibeKit-configured project in Cl
 
 No manual orchestration. Ask your AI to deploy a contract, and it builds the transaction, requests a signature from your account provider, and submits it to the network.
 
-## Two servers
+## MCP selection
 
-VibeKit configures two MCP servers:
+During `vibekit init`, you choose which MCP servers to configure. There are two categories:
 
-- **vibekit-mcp** — The 44 blockchain operations below: deploying contracts, calling methods, managing accounts and assets, querying state.
-- **kappa** — Searches official Algorand documentation. When your AI needs current information about Algorand APIs, SDKs, or concepts, it queries the docs directly.
+### Documentation MCPs
 
-Both start automatically with your AI tool.
+These give your AI access to Algorand documentation:
 
-:::note[Additional MPCs]
-VibeKit's MCP server is purpose-built for development workflows and integrates seamlessly with the secure account providers. For broader ecosystem interactions, the community-maintained [algorand-mcp](https://github.com/GoPlausible/algorand-mcp) offers additional capabilities.
+| Option              | Description                                                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Kappa** (default) | Interactive Q&A search for official Algorand docs. No setup required.                                             |
+| **Context7**        | Library-based docs access. Requires a free API key from [context7.com/dashboard](https://context7.com/dashboard). |
+| **Skip**            | Don't configure a documentation MCP.                                                                              |
+
+### Development MCPs
+
+These give your AI hands-on blockchain capabilities:
+
+| Option                    | Description                                                                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **VibeKit MCP** (default) | Full local development with 45 blockchain operations. Requires Docker (for Vault provider), an account provider, and optionally a GitHub PAT for code search. |
+| **GoPlausible Remote**    | Community-maintained tools for mainnet, testnet, and ecosystem operations. No local setup required—connects to remote servers.                                |
+| **Skip**                  | Don't configure a development MCP.                                                                                                                            |
+
+You can skip either category if you don't need it. For example, if you only want documentation search, skip the development MCP.
+
+:::note[Mixing options]
+You can combine any documentation MCP with any development MCP. Kappa + VibeKit MCP is the default. Context7 + GoPlausible Remote works for cloud-only setups.
 :::
 
 ## What the AI can do
 
-| Category      | Examples                                  |
-| ------------- | ----------------------------------------- |
-| **Contracts** | Deploy, call methods, delete apps         |
-| **State**     | Read global, local, and box storage       |
-| **Accounts**  | Create, fund, check balances              |
-| **Assets**    | Create ASAs, transfer, opt-in             |
-| **Network**   | Switch between localnet/testnet/mainnet   |
-| **Search**    | Query indexer, search GitHub for examples |
+| Category         | Examples                                  |
+| ---------------- | ----------------------------------------- |
+| **Contracts**    | Deploy, call methods, delete apps         |
+| **State**        | Read global, local, and box storage       |
+| **Accounts**     | Create, fund, check balances              |
+| **Assets**       | Create ASAs, transfer, opt-in             |
+| **Network**      | Switch between localnet/testnet/mainnet   |
+| **Transactions** | Simulate groups, send atomic transactions |
+| **Search**       | Query indexer, search GitHub for examples |
 
 ## Tool reference
 
 <Tabs>
   <TabItem label="Accounts">
-    | Tool | Description |
-    |------|-------------|
-    | `list_accounts` | List all accounts with balances |
-    | `get_account_info` | Get detailed account information |
-    | `create_account` | Create a new account |
-    | `switch_account` | Switch the active account |
-    | `get_active_account` | Get the currently active account |
-    | `send_payment` | Send ALGO payment |
-    | `fund_account` | Fund an account from the dispenser |
+    | Tool | Description | |------|-------------| | `list_accounts` | List all accounts with
+    balances | | `get_account_info` | Get detailed account information | | `create_account` | Create
+    a new account | | `switch_account` | Switch the active account | | `get_active_account` | Get
+    the currently active account | | `send_payment` | Send ALGO payment | | `fund_account` | Fund an
+    account from the dispenser |
   </TabItem>
   <TabItem label="Assets">
-    | Tool | Description |
-    |------|-------------|
-    | `create_asset` | Create a new ASA |
-    | `get_asset_info` | Get asset details |
-    | `asset_opt_in` | Opt into an asset |
-    | `asset_transfer` | Transfer assets |
-    | `asset_opt_out` | Opt out of an asset |
-    | `asset_freeze` | Freeze/unfreeze asset holdings |
-    | `asset_config` | Reconfigure an asset |
-    | `asset_destroy` | Destroy an asset |
+    | Tool | Description | |------|-------------| | `create_asset` | Create a new ASA | |
+    `get_asset_info` | Get asset details | | `asset_opt_in` | Opt into an asset | | `asset_transfer`
+    | Transfer assets | | `asset_opt_out` | Opt out of an asset | | `asset_freeze` | Freeze/unfreeze
+    asset holdings | | `asset_config` | Reconfigure an asset | | `asset_destroy` | Destroy an asset
+    |
   </TabItem>
   <TabItem label="Contracts">
-    | Tool | Description |
-    |------|-------------|
-    | `app_deploy` | Deploy a smart contract |
-    | `app_call` | Call a contract method |
-    | `app_get_info` | Get application info |
-    | `app_list_methods` | List available methods |
-    | `app_opt_in` | Opt into an application |
-    | `app_close_out` | Close out of an application |
-    | `app_delete` | Delete an application |
+    | Tool | Description | |------|-------------| | `app_deploy` | Deploy a smart contract | |
+    `app_call` | Call a contract method | | `app_get_info` | Get application info | |
+    `app_list_methods` | List available methods | | `app_opt_in` | Opt into an application | |
+    `app_close_out` | Close out of an application | | `app_delete` | Delete an application |
   </TabItem>
   <TabItem label="State">
-    | Tool | Description |
-    |------|-------------|
-    | `read_global_state` | Read application global state |
-    | `read_local_state` | Read account local state |
-    | `read_box` | Read box storage |
+    | Tool | Description | |------|-------------| | `read_global_state` | Read application global
+    state | | `read_local_state` | Read account local state | | `read_box` | Read box storage |
   </TabItem>
   <TabItem label="Indexer">
-    | Tool | Description |
-    |------|-------------|
-    | `indexer_lookup_transaction` | Look up a transaction by ID |
-    | `indexer_search_transactions` | Search transactions with filters |
-    | `indexer_lookup_application` | Look up application details |
-    | `indexer_lookup_application_logs` | Get application log messages |
-    | `indexer_lookup_asset` | Look up asset details |
+    | Tool | Description | |------|-------------| | `indexer_lookup_transaction` | Look up a
+    transaction by ID | | `indexer_search_transactions` | Search transactions with filters | |
+    `indexer_lookup_application` | Look up application details | | `indexer_lookup_application_logs`
+    | Get application log messages | | `indexer_lookup_asset` | Look up asset details |
   </TabItem>
   <TabItem label="Network">
-    | Tool | Description |
-    |------|-------------|
-    | `switch_network` | Switch between localnet/testnet/mainnet |
-    | `get_network` | Get current network configuration |
+    | Tool | Description | |------|-------------| | `switch_network` | Switch between
+    localnet/testnet/mainnet | | `get_network` | Get current network configuration |
   </TabItem>
   <TabItem label="GitHub">
-    | Tool | Description |
-    |------|-------------|
-    | `github_get_file_contents` | Get file contents from a repository |
-    | `github_search_code` | Search code across repositories |
-    | `github_search_repositories` | Search for repositories |
+    | Tool | Description | |------|-------------| | `github_get_file_contents` | Get file contents
+    from a repository | | `github_search_code` | Search code across repositories | |
+    `github_search_repositories` | Search for repositories |
+  </TabItem>
+  <TabItem label="Transactions">
+    | Tool | Description | |------|-------------| | `send_atomic_group` | Send an atomic transaction
+    group | | `simulate_transaction` | Dry-run transaction groups without submitting |
   </TabItem>
   <TabItem label="Utilities">
-    | Tool | Description |
-    |------|-------------|
-    | `get_provider` | Get current account provider |
-    | `send_atomic_group` | Send an atomic transaction group |
-    | `validate_address` | Validate an Algorand address |
-    | `get_application_address` | Get address for an application |
-    | `algo_to_microalgo` | Convert ALGO to microALGO |
-    | `microalgo_to_algo` | Convert microALGO to ALGO |
-    | `calculate_min_balance` | Calculate minimum balance requirement |
+    | Tool | Description | |------|-------------| | `get_provider` | Get current account provider |
+    | `validate_address` | Validate an Algorand address | | `get_application_address` | Get address
+    for an application | | `algo_to_microalgo` | Convert ALGO to microALGO | | `microalgo_to_algo` |
+    Convert microALGO to ALGO | | `calculate_min_balance` | Calculate minimum balance requirement |
   </TabItem>
 </Tabs>
 

@@ -3,7 +3,7 @@ title: Account Providers
 description: Your keys stay yours
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import { Aside } from '@astrojs/starlight/components'
 
 Your AI can deploy contracts, transfer assets, and sign transactions. But it never sees your private keys. Account providers handle the signing. The AI just requests it.
 
@@ -26,6 +26,20 @@ vibekit init
 - MCP server requests signatures through the keyring API
 - No containers, no extra services
 
+#### Storage model
+
+VibeKit uses a hybrid storage approach to minimize keyring password prompts:
+
+| Data                                 | Storage    | Why                                          |
+| ------------------------------------ | ---------- | -------------------------------------------- |
+| **Mnemonics, private keys**          | OS Keyring | High-security secrets need system encryption |
+| **Vault tokens**                     | OS Keyring | Grants access to vault operations            |
+| **Account metadata** (name, address) | SQLite     | Read frequently, not sensitive               |
+| **GitHub PAT**                       | SQLite     | Optional, low-risk credential                |
+| **Dispenser tokens**                 | SQLite     | TestNet only, easily regenerated             |
+
+This means you'll see fewer keyring password prompts during normal use. The keyring is only accessed when actually signing transactions or managing keys.
+
 #### Requirements
 
 - **macOS**: Keychain (built-in, nothing to install)
@@ -33,7 +47,8 @@ vibekit init
 - **Windows**: Credential Manager (built-in, nothing to install)
 
 <Aside type="caution">
-  Your OS keyring is only as secure as your machine. Malware with local access can read it. If you're on a shared computer or running untrusted software, your keys are exposed.
+  Your OS keyring provides encryption, but it's only as secure as you and your machine. Stay
+  vigilant and use hardware wallets for keys that hold significant value.
 </Aside>
 
 ## KMD
@@ -45,7 +60,9 @@ When you're on localnet, VibeKit uses KMD for dispensing test funds from the def
 ## Vault
 
 <Aside type="note" title="Experimental">
-  This feature is experimental. We're putting the APIs out there and gathering feedback. The intended use case is teams managing shared development keys securely, but that workflow isn't fully baked yet.
+  This feature is experimental. We're putting the APIs out there and gathering feedback. The
+  intended use case is teams managing shared development keys securely, but that workflow isn't
+  fully baked yet.
 </Aside>
 
 HashiCorp Vault in Docker.
@@ -77,5 +94,7 @@ We're exploring [Intermezzo](https://github.com/algorandfoundation/intermezzo) f
 Try it, break it, tell us what's missing.
 
 <Aside type="caution">
-  You hold the root token and unseal key. Lose them, and you're locked out. Expose them, and someone else owns your keys. There's no recovery mechanism—treat them like seed phrases. Also, it's running in Docker. Remove the container and its volumes, and your keys are gone.
+  You hold the root token and unseal key. Lose them, and you're locked out. Expose them, and someone
+  else owns your keys. There's no recovery mechanism. Also, it's running in Docker. Remove the
+  container and its volumes, and your keys are gone.
 </Aside>
