@@ -29,6 +29,7 @@ export interface SetupContext {
   agents: AgentSelection
   mcps: MCPSelection
   skillsPath: SkillsPath
+  selectedSkills: string[]
   githubPat?: string
   configureGithub: boolean
   dockerAvailable: boolean

@@ -17,7 +17,7 @@ import {
 } from '../../../config'
 import { ensureDir, writeJsonFile, writeTextFile, fileExists } from '../../../utils/files'
 import { saveGithubToken } from '../../../lib/vault'
-import { getSkills, getSkillsCount } from '../../../lib/skills'
+import { getSkillsByNames, getSkillsCount, type SkillSelection } from '../../../lib/skills'
 import { select } from '../../../utils/prompts'
 
 import { agentsMdContent } from '../../../config/agents-md'
@@ -145,9 +145,10 @@ async function installSkillsToDir(targetDir: string, skills: SkillDirectory[]): 
 
 export async function setupSkillsStep(
   agents: AgentSelection,
-  skillsPath: SkillsPath
+  skillsPath: SkillsPath,
+  selectedSkills: SkillSelection
 ): Promise<number> {
-  const skills = getSkills()
+  const skills = getSkillsByNames(selectedSkills)
   const targetDirs = getAllAgentSkillsDirs(skillsPath, agents)
 
   for (const targetDir of targetDirs) {

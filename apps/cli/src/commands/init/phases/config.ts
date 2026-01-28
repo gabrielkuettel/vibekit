@@ -11,6 +11,7 @@ import { URLS } from '../../../config'
 import { isValidGitHubPATFormat } from '../../../utils/validation'
 import { hasGithubToken } from '../../../lib/vault'
 import { AGENTS, AGENT_IDS, type AgentId } from '../../../config'
+import { getSkillNames, type SkillSelection } from '../../../lib/skills'
 import type { SkillsPath } from '../../../types'
 
 function buildAgentOptions(): { value: AgentId; label: string }[] {
@@ -132,4 +133,50 @@ export async function setupGithubPatStep(): Promise<GitHubPATResult> {
 
   const pat = await promptForPat()
   return { configureGithub: true, pat }
+}
+
+/**
+ * Format skill name for display (e.g., "algorand-typescript" -> "Algorand TypeScript")
+ */
+function formatSkillName(name: string): string {
+  return name
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
+export async function selectSkillsStep(): Promise<SkillSelection> {
+  const allSkillNames = getSkillNames()
+  const skillCount = allSkillNames.length
+
+  const selectionType = await select({
+    message: 'Which skills would you like to install?',
+    options: [
+      {
+        value: 'all',
+        label: `All skills (${skillCount})`,
+        hint: 'recommended',
+      },
+      {
+        value: 'custom',
+        label: 'Choose specific skills',
+      },
+    ],
+  })
+
+  if (selectionType === 'all') {
+    return allSkillNames
+  }
+
+  // Custom selection
+  const options = allSkillNames.map((name) => ({
+    value: name,
+    label: formatSkillName(name),
+  }))
+
+  return multiselect({
+    message: 'Select skills to install:',
+    options,
+    required: true,
+  })
 }

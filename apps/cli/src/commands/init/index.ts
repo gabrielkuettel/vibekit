@@ -11,7 +11,12 @@ import { welcome, detectOSStep } from './phases/system'
 import { checkDockerStep } from './phases/docker'
 import { installAlgokitStep } from './phases/algokit'
 import { setupProvidersStep } from './phases/providers'
-import { selectToolStep, selectSkillsLocationStep, setupGithubPatStep } from './phases/config'
+import {
+  selectToolStep,
+  selectSkillsLocationStep,
+  setupGithubPatStep,
+  selectSkillsStep,
+} from './phases/config'
 import { selectMCPsStep } from './phases/mcps'
 import { generateConfigsStep, setupSkillsStep, setupAgentsMdStep } from './phases/create'
 import { authKappaStep, dispenserLoginStep } from './phases/auth'
@@ -40,7 +45,12 @@ export async function confirmCreateProject(): Promise<boolean> {
 /**
  * Build preview of files to be created
  */
-function buildFilePreview(skillsPath: string, agents: AgentSelection, _mcps: MCPSelection): string[] {
+function buildFilePreview(
+  skillsPath: string,
+  agents: AgentSelection,
+  _mcps: MCPSelection,
+  selectedSkillsCount: number
+): string[] {
   const lines: string[] = []
 
   for (const agent of getEnabledAgents(agents)) {
@@ -51,7 +61,7 @@ function buildFilePreview(skillsPath: string, agents: AgentSelection, _mcps: MCP
 
     const skillsDir = getAgentSkillsDir(skillsPath, agent)
     if (skillsDir) {
-      lines.push(`  ${pc.dim(skillsDir)} ${pc.cyan('(skills)')}`)
+      lines.push(`  ${pc.dim(skillsDir)} ${pc.cyan(`(${selectedSkillsCount} skills)`)}`)
     }
 
     const templatePath = getAgentTemplateFile(skillsPath, agent)
@@ -80,6 +90,9 @@ export async function runSetupWizard(): Promise<void> {
   // Phase 3: AI tool selection
   const agents = await selectToolStep()
 
+  // Phase 3.5: Skill selection
+  const selectedSkills = await selectSkillsStep()
+
   // Phase 4: Directory selection
   const skillsPath = await selectSkillsLocationStep()
 
@@ -105,7 +118,7 @@ export async function runSetupWizard(): Promise<void> {
   }
 
   // Phase 9: Preview & Confirm
-  const previewLines = buildFilePreview(skillsPath, agents, mcps)
+  const previewLines = buildFilePreview(skillsPath, agents, mcps, selectedSkills.length)
   p.note(previewLines.join('\n'), 'Files to create')
 
   const confirmed = await confirmCreateProject()
@@ -120,6 +133,7 @@ export async function runSetupWizard(): Promise<void> {
     agents,
     mcps,
     skillsPath,
+    selectedSkills,
     githubPat: patResult.pat,
     configureGithub: patResult.configureGithub,
     dockerAvailable: dockerResult.available,
@@ -135,7 +149,7 @@ export async function runSetupWizard(): Promise<void> {
   s.start('Creating project files...')
   try {
     await generateConfigsStep(context)
-    const skillsCount = await setupSkillsStep(agents, skillsPath)
+    const skillsCount = await setupSkillsStep(agents, skillsPath, selectedSkills)
     s.stop(`Created ${skillsCount} skills`)
 
     // setupAgentsMdStep may prompt user, so run outside spinner
