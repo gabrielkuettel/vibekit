@@ -1,7 +1,7 @@
 /**
  * Pre-build script to fetch skills from GitHub and generate bundled.ts
  *
- * Run with: bun run scripts/bundle-skills.ts
+ * Run with: bun run bundle-skills
  *
  * Set GITHUB_TOKEN environment variable to avoid rate limits:
  *   GITHUB_TOKEN=ghp_xxx bun run scripts/bundle-skills.ts

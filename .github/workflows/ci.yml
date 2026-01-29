@@ -19,7 +19,7 @@ jobs:
         run: bun install
 
       - name: Bundle skills (generates bundled.ts for typecheck)
-        run: bun run prebuild
+        run: bun run bundle-skills
         working-directory: apps/cli
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -39,7 +39,7 @@ jobs:
         run: bun install
 
       - name: Bundle skills
-        run: bun run prebuild
+        run: bun run bundle-skills
         working-directory: apps/cli
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

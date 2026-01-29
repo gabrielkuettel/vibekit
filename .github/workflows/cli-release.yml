@@ -29,7 +29,7 @@ jobs:
         run: bun run build
 
       - name: Bundle skills
-        run: bun run prebuild
+        run: bun run bundle-skills
         working-directory: apps/cli
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
