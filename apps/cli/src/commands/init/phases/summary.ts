@@ -26,6 +26,9 @@ function formatProviderStatus(context: SetupContext): string {
   if (context.keyringStatus === 'completed') {
     configured.push('Keyring')
   }
+  if (context.walletConnectStatus === 'completed') {
+    configured.push('WalletConnect')
+  }
 
   if (configured.length === 0) {
     return pc.yellow('none (run: vibekit init)')
