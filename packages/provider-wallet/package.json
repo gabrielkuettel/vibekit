@@ -17,6 +17,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@vibekit/db": "workspace:*",
     "@vibekit/provider-interface": "workspace:*",
     "@walletconnect/client": "^1.8.0",
     "@walletconnect/types": "^1.8.0",

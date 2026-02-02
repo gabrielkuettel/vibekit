@@ -43,7 +43,7 @@ export async function getDefaultSender(
   const activeAccount = appState.getActiveAccount()
 
   if (activeAccount) {
-    const provider = appState.getAccountProvider()
+    const provider = await appState.getProvider()
     const accountWithSigner = await provider.getAccountWithSigner(activeAccount)
     algorand.account.setSigner(accountWithSigner.address, accountWithSigner.signer)
     return { addr: { toString: () => accountWithSigner.address } }
@@ -99,7 +99,7 @@ export async function getAccountFromProvider(
   algorand: AlgorandClient,
   address: string
 ): Promise<{ addr: { toString(): string } }> {
-  const provider = appState.getAccountProvider()
+  const provider = await appState.getProvider()
 
   // Optimization: Check active account first to avoid requiring list permission
   const activeAccountName = appState.getActiveAccount()
@@ -159,7 +159,7 @@ export async function listAccounts(
 
   if (appState.isProviderAvailable()) {
     try {
-      const provider = appState.getAccountProvider()
+      const provider = await appState.getProvider()
       const providerAccounts = await provider.listAccounts()
       for (const account of providerAccounts) {
         let info: Awaited<ReturnType<typeof algorand.account.getInformation>> | undefined
@@ -337,14 +337,31 @@ export async function createAccount(
     // Only one provider available - use it
     targetProvider = availableProviders[0]
   } else {
-    // Multiple providers available - require explicit choice
-    throw new Error(
-      `Multiple providers available: ${availableProviders.join(', ')}.\n` +
-        `Please specify which provider to create the account in using the 'provider' parameter.`
-    )
+    // Multiple providers available - filter to those that can create accounts
+    const creatableProviders = availableProviders.filter((p) => p !== 'wallet')
+    if (creatableProviders.length === 1) {
+      targetProvider = creatableProviders[0]
+    } else if (creatableProviders.length === 0) {
+      throw new Error(
+        `No provider can create accounts.\n` +
+          `Wallet accounts are managed in the mobile wallet app.\n` +
+          `Use pair_wallet to connect a mobile wallet.`
+      )
+    } else {
+      throw new Error(
+        `Multiple providers available: ${creatableProviders.join(', ')}.\n` +
+          `Please specify which provider to create the account in using the 'provider' parameter.`
+      )
+    }
   }
 
-  const accountProvider = appState.getAccountProvider(targetProvider)
+  const accountProvider = await appState.getProvider(targetProvider)
+  if (!accountProvider.canCreateAccounts()) {
+    throw new Error(
+      `Cannot create accounts in ${targetProvider} provider.\n` +
+        `Wallet accounts are managed in the mobile wallet app.`
+    )
+  }
   const accountInfo = await accountProvider.createAccount(name)
 
   if (switchTo) {
@@ -428,7 +445,7 @@ export async function switchAccount(
       if (!appState.isProviderAvailable(providerType)) {
         continue
       }
-      const accountProvider = appState.getAccountProvider(providerType)
+      const accountProvider = await appState.getProvider(providerType)
       const accountInfo = await accountProvider.getAccount(name)
       if (accountInfo) {
         matches.push({
@@ -511,7 +528,7 @@ export async function getActiveAccountDetails(algorand: AlgorandClient): Promise
           'Run: vibekit init'
       )
     }
-    const provider = appState.getAccountProvider()
+    const provider = await appState.getProvider()
     const accountInfo = await provider.getAccount(currentAccount)
     if (accountInfo) {
       address = accountInfo.address
@@ -609,7 +626,7 @@ export async function listAccountsForTools(
       if (!appState.isProviderAvailable(providerType)) {
         continue
       }
-      const provider = appState.getAccountProvider(providerType)
+      const provider = await appState.getProvider(providerType)
       const providerAccounts = await provider.listAccounts()
 
       for (const account of providerAccounts) {

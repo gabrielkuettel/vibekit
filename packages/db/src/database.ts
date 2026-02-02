@@ -47,6 +47,16 @@ export function getDb(): Database {
     )
   `)
 
+  // Initialize wallet_sessions table for WalletConnect session persistence
+  db.run(`
+    CREATE TABLE IF NOT EXISTS wallet_sessions (
+      wallet_id TEXT PRIMARY KEY,
+      session_data TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `)
+
   return db
 }
 

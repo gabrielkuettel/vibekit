@@ -40,3 +40,12 @@ export {
   deleteDispenserToken,
   hasDispenserToken,
 } from './tokens.js'
+
+// Wallet session operations
+export {
+  getWalletSession,
+  upsertWalletSession,
+  deleteWalletSession,
+  hasWalletSession,
+  type WalletSessionRow,
+} from './wallet-sessions.js'

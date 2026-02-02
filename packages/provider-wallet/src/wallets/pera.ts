@@ -88,7 +88,7 @@ export class PeraWallet implements WalletImplementation {
       this.bridgeUrl = config.bridgeUrl ?? (await fetchBridgeUrl())
 
       // Try to restore existing session
-      const storedSession = await loadSession('pera', config.configDir)
+      const storedSession = await loadSession('pera')
       if (storedSession) {
         const clientMeta = toClientMeta(config.metadata ?? DEFAULT_METADATA)
         this.connector = new WalletConnect({
@@ -133,9 +133,7 @@ export class PeraWallet implements WalletImplementation {
     this.connector.on('disconnect', async () => {
       this.connector = null
       this.accounts = []
-      if (this.config) {
-        await clearSession('pera', this.config.configDir)
-      }
+      await clearSession('pera')
     })
 
     // Handle session update (accounts changed)
@@ -181,12 +179,11 @@ export class PeraWallet implements WalletImplementation {
       handshakeTopic: session.handshakeTopic,
       handshakeId: session.handshakeId,
     }
-    await saveSession('pera', storedSession, this.config.configDir)
+    await saveSession('pera', storedSession)
   }
 
   async hasSession(): Promise<boolean> {
-    if (!this.config) return false
-    const session = await loadSession('pera', this.config.configDir)
+    const session = await loadSession('pera')
     return session !== null
   }
 
@@ -316,9 +313,6 @@ export class PeraWallet implements WalletImplementation {
 
     this.connector = null
     this.accounts = []
-
-    if (this.config) {
-      await clearSession('pera', this.config.configDir)
-    }
+    await clearSession('pera')
   }
 }

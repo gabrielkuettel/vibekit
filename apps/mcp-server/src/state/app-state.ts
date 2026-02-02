@@ -9,9 +9,10 @@ import { AlgorandClient } from '@algorandfoundation/algokit-utils'
 import type { DispenserProvider } from '@vibekit/dispenser-interface'
 import { KmdDispenser } from '@vibekit/dispenser-kmd'
 import { TestNetDispenser, NoDispenser } from '@vibekit/dispenser-testnet'
-import type { AccountProvider, AccountProviderType } from '@vibekit/provider-interface'
+import type { AccountProvider, AccountProviderType, WalletId } from '@vibekit/provider-interface'
 import { VaultProvider } from '@vibekit/provider-vault'
 import { KeyringProvider } from '@vibekit/provider-keyring'
+import type { WalletProvider } from '@vibekit/provider-wallet'
 import { NETWORK_PRESETS, type NetworkType, type NetworkPreset } from '../config.js'
 import type { NetworkConfig, InitConfig, VaultProviderConfig } from './types.js'
 
@@ -86,6 +87,7 @@ export class AppState {
 
   private vaultProvider: VaultProvider | null = null
   private keyringProvider: KeyringProvider | null = null
+  private walletProvider: WalletProvider | null = null
   private vaultConfig: VaultProviderConfig | null = null
   private dispenser: DispenserProvider | null = null
   private dispenserToken: string | null = null
@@ -233,6 +235,71 @@ export class AppState {
   }
 
   /**
+   * Get an account provider with async initialization.
+   * Preferred method for accessing providers - handles wallet initialization.
+   *
+   * @param type - Optional provider type to get
+   * @returns Initialized AccountProvider
+   */
+  async getProvider(type?: AccountProviderType): Promise<AccountProvider> {
+    const availableProviders = this.getAvailableProviderTypes()
+    const targetType = type ?? this.activeAccountProvider ?? availableProviders[0]
+
+    if (targetType === 'wallet') {
+      return this.getWalletProvider()
+    }
+
+    // Existing sync providers - initialize() is no-op
+    const provider = this.getAccountProvider(targetType)
+    await provider.initialize()
+    return provider
+  }
+
+  /**
+   * Get the wallet provider for mobile wallet connections.
+   * Lazily initializes the wallet provider on first access.
+   *
+   * @param walletId - Wallet to use (default: pera)
+   * @returns Initialized WalletProvider
+   * @throws Error if on localnet (wallets can't connect to local networks)
+   */
+  async getWalletProvider(walletId: WalletId = 'pera'): Promise<WalletProvider> {
+    if (this.isLocalnet()) {
+      throw new Error(
+        'Wallet connections are not available on localnet.\n' +
+          'Mobile wallets cannot connect to your local network.\n' +
+          'Switch to testnet: switch_network testnet'
+      )
+    }
+
+    if (!this.walletProvider || this.walletProvider.walletId !== walletId) {
+      const { createWalletProvider } = await import('@vibekit/provider-wallet')
+      this.walletProvider = createWalletProvider(walletId, {
+        network: this.getWalletNetwork(),
+      })
+      await this.walletProvider.initialize()
+    }
+
+    return this.walletProvider
+  }
+
+  /**
+   * Check if wallet connections are available.
+   * Returns false on localnet since mobile wallets can't connect to local networks.
+   */
+  isWalletAvailable(): boolean {
+    return !this.isLocalnet()
+  }
+
+  /**
+   * Get the network for wallet connections.
+   * Maps the current network to WalletConnect network identifiers.
+   */
+  getWalletNetwork(): 'mainnet' | 'testnet' {
+    return this.networkConfig?.network === 'mainnet' ? 'mainnet' : 'testnet'
+  }
+
+  /**
    * Check if Vault provider is available (has MCP token).
    */
   isVaultAvailable(): boolean {
@@ -257,6 +324,9 @@ export class AppState {
     if (type === 'keyring') {
       return true
     }
+    if (type === 'wallet') {
+      return this.isWalletAvailable()
+    }
     return this.getAvailableProviderTypes().length > 0
   }
 
@@ -264,6 +334,7 @@ export class AppState {
    * Get all available provider types.
    * Vault is available if MCP token exists.
    * Keyring is always available.
+   * Wallet is available on testnet/mainnet (not localnet).
    */
   getAvailableProviderTypes(): AccountProviderType[] {
     const providers: AccountProviderType[] = []
@@ -271,6 +342,9 @@ export class AppState {
       providers.push('vault')
     }
     providers.push('keyring')
+    if (this.isWalletAvailable()) {
+      providers.push('wallet')
+    }
     return providers
   }
 
@@ -368,6 +442,7 @@ export class AppState {
     // Provider fields
     this.vaultProvider = null
     this.keyringProvider = null
+    this.walletProvider = null
     this.vaultConfig = null
   }
 }
