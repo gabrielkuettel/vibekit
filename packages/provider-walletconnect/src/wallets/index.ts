@@ -6,7 +6,7 @@
  */
 
 import type { WalletId } from '@vibekit/provider-interface'
-import type { WalletImplementation } from '../types.js'
+import type { WalletImplementation } from '../types/index.js'
 import { PeraWallet } from './pera.js'
 
 /**

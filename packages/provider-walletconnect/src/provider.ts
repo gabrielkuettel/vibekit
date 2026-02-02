@@ -13,7 +13,7 @@ import type {
   ProviderStatus,
   WalletId,
 } from '@vibekit/provider-interface'
-import type { WalletConfig, PairingRequest, WalletImplementation } from './types.js'
+import type { WalletConfig, PairingRequest, WalletImplementation } from './types/index.js'
 import {
   createWalletImplementation,
   getSupportedWallets,
@@ -26,7 +26,7 @@ import { CannotCreateAccountError, NoSessionError, WalletNotSupportedError } fro
  * Adds wallet-specific operations beyond AccountProvider.
  */
 export interface WalletProvider extends AccountProvider {
-  readonly type: 'wallet'
+  readonly type: 'walletconnect'
 
   /** The specific wallet implementation */
   readonly walletId: WalletId
@@ -53,7 +53,7 @@ export interface WalletProvider extends AccountProvider {
  * Wraps a specific wallet implementation and provides AccountProvider interface.
  */
 export class WalletProviderImpl implements WalletProvider {
-  readonly type = 'wallet' as const
+  readonly type = 'walletconnect' as const
   readonly walletId: WalletId
 
   private wallet: WalletImplementation
@@ -85,7 +85,7 @@ export class WalletProviderImpl implements WalletProvider {
       ready,
       message: ready
         ? `Connected to ${this.wallet.name} with ${accounts.length} account(s)`
-        : `Not connected. Use pair_wallet to connect ${this.wallet.name}.`,
+        : `Not connected. Use connect_walletconnect to connect ${this.wallet.name}.`,
       connection: ready
         ? {
             walletId: this.walletId,

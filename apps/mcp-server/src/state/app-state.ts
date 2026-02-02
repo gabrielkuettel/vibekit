@@ -12,7 +12,7 @@ import { TestNetDispenser, NoDispenser } from '@vibekit/dispenser-testnet'
 import type { AccountProvider, AccountProviderType, WalletId } from '@vibekit/provider-interface'
 import { VaultProvider } from '@vibekit/provider-vault'
 import { KeyringProvider } from '@vibekit/provider-keyring'
-import type { WalletProvider } from '@vibekit/provider-wallet'
+import type { WalletProvider } from '@vibekit/provider-walletconnect'
 import { NETWORK_PRESETS, type NetworkType, type NetworkPreset } from '../config.js'
 import type { NetworkConfig, InitConfig, VaultProviderConfig } from './types.js'
 
@@ -245,7 +245,7 @@ export class AppState {
     const availableProviders = this.getAvailableProviderTypes()
     const targetType = type ?? this.activeAccountProvider ?? availableProviders[0]
 
-    if (targetType === 'wallet') {
+    if (targetType === 'walletconnect') {
       return this.getWalletProvider()
     }
 
@@ -273,7 +273,7 @@ export class AppState {
     }
 
     if (!this.walletProvider || this.walletProvider.walletId !== walletId) {
-      const { createWalletProvider } = await import('@vibekit/provider-wallet')
+      const { createWalletProvider } = await import('@vibekit/provider-walletconnect')
       this.walletProvider = createWalletProvider(walletId, {
         network: this.getWalletNetwork(),
       })
@@ -318,16 +318,8 @@ export class AppState {
    * Check if any provider is available.
    */
   isProviderAvailable(type?: AccountProviderType): boolean {
-    if (type === 'vault') {
-      return this.vaultConfig !== null
-    }
-    if (type === 'keyring') {
-      return true
-    }
-    if (type === 'wallet') {
-      return this.isWalletAvailable()
-    }
-    return this.getAvailableProviderTypes().length > 0
+    const available = this.getAvailableProviderTypes()
+    return type ? available.includes(type) : available.length > 0
   }
 
   /**
@@ -343,7 +335,7 @@ export class AppState {
     }
     providers.push('keyring')
     if (this.isWalletAvailable()) {
-      providers.push('wallet')
+      providers.push('walletconnect')
     }
     return providers
   }

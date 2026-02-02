@@ -24,7 +24,7 @@ export class WalletError extends Error {
  */
 export class NoSessionError extends WalletError {
   constructor(message = 'No active wallet session') {
-    super(message, 'NO_SESSION', 'Use pair_wallet to connect a wallet.')
+    super(message, 'NO_SESSION', 'Use connect_walletconnect to connect a wallet.')
     this.name = 'NoSessionError'
   }
 }
@@ -34,7 +34,7 @@ export class NoSessionError extends WalletError {
  */
 export class SessionExpiredError extends WalletError {
   constructor(message = 'Wallet session has expired') {
-    super(message, 'SESSION_EXPIRED', 'Use pair_wallet to reconnect.')
+    super(message, 'SESSION_EXPIRED', 'Use connect_walletconnect to reconnect.')
     this.name = 'SessionExpiredError'
   }
 }

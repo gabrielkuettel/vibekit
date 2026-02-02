@@ -1,15 +1,15 @@
 /**
- * Disconnect Wallet Tool
+ * Disconnect WalletConnect Tool
  *
- * Disconnect from the currently connected wallet.
+ * Disconnect from the currently connected WalletConnect session.
  */
 
 import type { ToolRegistration } from '../types.js'
 import { appState } from '../../state/index.js'
 
-export const disconnectWalletTool: ToolRegistration = {
+export const disconnectWalletconnectTool: ToolRegistration = {
   definition: {
-    name: 'disconnect_wallet',
+    name: 'disconnect_walletconnect',
     description:
       'Disconnect from the currently connected mobile wallet. ' +
       'Clears the session and any associated accounts.',
@@ -46,14 +46,14 @@ export const disconnectWalletTool: ToolRegistration = {
 
       // Clear active account if it was a wallet account
       const activeProvider = appState.getActiveAccountProvider()
-      if (activeProvider === 'wallet') {
+      if (activeProvider === 'walletconnect') {
         // On testnet/mainnet we can't clear to dispenser, so we just note it
         // The user needs to switch to a different account
         return {
           success: true,
           message: `Disconnected from ${walletName}.`,
           warning:
-            'Active account was cleared. Use switch_account to select a different account, or pair_wallet to reconnect.',
+            'Active account was cleared. Use switch_account to select a different account, or connect_walletconnect to reconnect.',
         }
       }
 

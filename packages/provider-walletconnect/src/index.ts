@@ -32,13 +32,17 @@ export {
   InitializationError,
 } from './errors.js'
 
-// Type exports
+// Constants exports
 export {
   ALGORAND_CHAIN_IDS,
   CHAIN_ID_TO_NETWORK,
   PERA_CONFIG_URL,
   DEFAULT_METADATA,
   SIGNING_TIMEOUT_MS,
+} from './constants.js'
+
+// Type exports
+export {
   type WalletConfig,
   type WalletMetadata,
   type PairingRequest,
@@ -46,12 +50,16 @@ export {
   type StoredSession,
   type WalletImplementation,
   type WalletConnectTransaction,
-} from './types.js'
+} from './types/index.js'
 
-// Utility exports
-export { generateQR, type GeneratedQR } from './qr-generator.js'
-export { saveSession, loadSession, clearSession, hasSession } from './session-store.js'
-export { createWalletConnectSigner } from './signer.js'
+// Session module exports
+export { saveSession, loadSession, clearSession, hasSession } from './session/index.js'
+
+// Pairing module exports
+export { generateQR, type GeneratedQR } from './pairing/index.js'
+
+// Signing module exports
+export { createWalletConnectSigner } from './signing/index.js'
 
 // Wallet implementations
 export { PeraWallet } from './wallets/index.js'

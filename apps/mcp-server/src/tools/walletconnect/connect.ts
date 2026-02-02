@@ -1,20 +1,21 @@
 /**
- * Pair Wallet Tool
+ * Connect WalletConnect Tool
  *
  * Connect to a mobile wallet (Pera, Defly, etc.) via QR code.
  */
 
 import type { ToolRegistration } from '../types.js'
+import { withImage } from '../types.js'
 import { appState } from '../../state/index.js'
 import type { WalletId } from '@vibekit/provider-interface'
 
-interface PairWalletArgs {
+interface ConnectWalletconnectArgs {
   wallet?: WalletId
 }
 
-export const pairWalletTool: ToolRegistration = {
+export const connectWalletconnectTool: ToolRegistration = {
   definition: {
-    name: 'pair_wallet',
+    name: 'connect_walletconnect',
     description:
       'Connect to a mobile wallet (Pera, Defly, etc.) via QR code. ' +
       'Returns a QR code to scan with your mobile wallet app. ' +
@@ -31,7 +32,7 @@ export const pairWalletTool: ToolRegistration = {
     },
   },
   handler: async (args: Record<string, unknown>) => {
-    const { wallet = 'pera' } = args as PairWalletArgs
+    const { wallet = 'pera' } = args as ConnectWalletconnectArgs
 
     // Get or create wallet provider
     const walletProvider = await appState.getWalletProvider(wallet)
@@ -47,7 +48,7 @@ export const pairWalletTool: ToolRegistration = {
             name: a.name,
             address: a.address,
           })),
-          hint: 'Use disconnect_wallet to disconnect and pair with a different wallet.',
+          hint: 'Use disconnect_walletconnect to disconnect and pair with a different wallet.',
         }
       }
     }
@@ -55,11 +56,11 @@ export const pairWalletTool: ToolRegistration = {
     // Request new pairing
     const pairingRequest = await walletProvider.requestPairing()
 
-    // Return QR code and instructions
-    const result = {
+    // Build response data
+    const data = {
       success: true,
       message: `Scan this QR code with ${wallet === 'pera' ? 'Pera Wallet' : wallet} to connect`,
-      qrCode: pairingRequest.qrAscii,
+      qrCode: pairingRequest.qrAscii, // ASCII fallback for terminal
       uri: pairingRequest.uri,
       instructions: [
         `1. Open ${wallet === 'pera' ? 'Pera Wallet' : wallet} on your mobile device`,
@@ -76,13 +77,14 @@ export const pairWalletTool: ToolRegistration = {
       .then(async (pairingResult) => {
         // Set first account as active
         if (pairingResult.accounts.length > 0) {
-          appState.setActiveAccount(pairingResult.accounts[0].name, 'wallet')
+          appState.setActiveAccount(pairingResult.accounts[0].name, 'walletconnect')
         }
       })
       .catch(() => {
         // Pairing failed or timed out - handled silently
       })
 
-    return result
+    // Return both ASCII QR (in JSON) and image content block
+    return withImage(data, pairingRequest.qrDataUrl)
   },
 }

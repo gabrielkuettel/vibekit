@@ -11,7 +11,7 @@ import {
   deleteWalletSession,
   hasWalletSession as dbHasSession,
 } from '@vibekit/db'
-import type { StoredSession } from './types.js'
+import type { StoredSession } from '../types/index.js'
 import type { WalletId } from '@vibekit/provider-interface'
 
 /**

@@ -1,5 +1,5 @@
 {
-  "name": "@vibekit/provider-wallet",
+  "name": "@vibekit/provider-walletconnect",
   "version": "0.1.0",
   "private": true,
   "type": "module",

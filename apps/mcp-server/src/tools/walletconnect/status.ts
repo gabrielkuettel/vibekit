@@ -1,15 +1,15 @@
 /**
- * Wallet Status Tool
+ * WalletConnect Status Tool
  *
- * Check the status of wallet connections.
+ * Check the status of WalletConnect connections.
  */
 
 import type { ToolRegistration } from '../types.js'
 import { appState } from '../../state/index.js'
 
-export const walletStatusTool: ToolRegistration = {
+export const walletconnectStatusTool: ToolRegistration = {
   definition: {
-    name: 'wallet_status',
+    name: 'walletconnect_status',
     description:
       'Check the status of mobile wallet connections. ' +
       'Shows whether a wallet is connected and which accounts are available.',
@@ -47,14 +47,14 @@ export const walletStatusTool: ToolRegistration = {
             address: a.address,
           })),
           activeAccount: appState.getActiveAccount(),
-          hint: 'Use switch_account to change the active account, or disconnect_wallet to disconnect.',
+          hint: 'Use switch_account to change the active account, or disconnect_walletconnect to disconnect.',
         }
       } else {
         return {
           connected: false,
           message: status.message,
           network: appState.getWalletNetwork(),
-          hint: 'Use pair_wallet to connect a mobile wallet.',
+          hint: 'Use connect_walletconnect to connect a mobile wallet.',
         }
       }
     } catch (error) {
@@ -62,7 +62,7 @@ export const walletStatusTool: ToolRegistration = {
         connected: false,
         message: error instanceof Error ? error.message : 'Failed to get wallet status',
         network: appState.getWalletNetwork(),
-        hint: 'Use pair_wallet to connect a mobile wallet.',
+        hint: 'Use connect_walletconnect to connect a mobile wallet.',
       }
     }
   },
