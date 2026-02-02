@@ -57,6 +57,15 @@ export function getDb(): Database {
     )
   `)
 
+  // Initialize settings table for user preferences (e.g., network selection)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `)
+
   return db
 }
 

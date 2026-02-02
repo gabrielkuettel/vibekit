@@ -13,6 +13,7 @@ import type { AccountProvider, AccountProviderType, WalletId } from '@vibekit/pr
 import { VaultProvider } from '@vibekit/provider-vault'
 import { KeyringProvider } from '@vibekit/provider-keyring'
 import type { WalletProvider } from '@vibekit/provider-walletconnect'
+import { getSetting, setSetting } from '@vibekit/db'
 import { NETWORK_PRESETS, type NetworkType, type NetworkPreset } from '../config.js'
 import type { NetworkConfig, InitConfig, VaultProviderConfig } from './types.js'
 
@@ -97,25 +98,39 @@ export class AppState {
   /**
    * Initialize application state from environment variables.
    * Called once at MCP server startup.
+   *
+   * Network selection priority:
+   * 1. ALGORAND_NETWORK env var (explicit override, also uses endpoint env vars)
+   * 2. Saved network from database (user's last selection, uses presets)
+   * 3. Default to 'localnet'
+   *
+   * When ALGORAND_NETWORK is explicitly set, endpoint env vars are also used.
+   * When using saved/default network, presets are used to avoid endpoint mismatch.
    */
   initialize(config?: InitConfig): void {
     this.vaultConfig = config?.vaultConfig || null
     this.dispenserToken = config?.dispenserToken || null
 
-    const networkEnv = (process.env.ALGORAND_NETWORK || 'localnet') as NetworkType
-    const preset = NETWORK_PRESETS[networkEnv] || NETWORK_PRESETS.localnet
+    const envNetwork = process.env.ALGORAND_NETWORK as NetworkType | undefined
+    const savedNetwork = getSetting('network') as NetworkType | null
+    const network = envNetwork || savedNetwork || 'localnet'
+    const preset = NETWORK_PRESETS[network] || NETWORK_PRESETS.localnet
+
+    // Only use endpoint env vars when ALGORAND_NETWORK is explicitly set.
+    // This prevents mismatch where saved network is testnet but endpoints point to localnet.
+    const useEnvEndpoints = !!envNetwork
 
     this.networkConfig = {
-      network: networkEnv,
-      algodServer: process.env.ALGORAND_ALGOD || preset.algodServer,
-      algodToken: process.env.ALGORAND_TOKEN || preset.algodToken,
-      kmdServer: process.env.ALGORAND_KMD || preset.kmdServer,
-      kmdToken: process.env.ALGORAND_KMD_TOKEN || preset.kmdToken,
-      indexerServer: process.env.ALGORAND_INDEXER || preset.indexerServer,
+      network,
+      algodServer: useEnvEndpoints ? (process.env.ALGORAND_ALGOD || preset.algodServer) : preset.algodServer,
+      algodToken: useEnvEndpoints ? (process.env.ALGORAND_TOKEN ?? preset.algodToken) : preset.algodToken,
+      kmdServer: useEnvEndpoints ? (process.env.ALGORAND_KMD || preset.kmdServer) : preset.kmdServer,
+      kmdToken: useEnvEndpoints ? (process.env.ALGORAND_KMD_TOKEN || preset.kmdToken) : preset.kmdToken,
+      indexerServer: useEnvEndpoints ? (process.env.ALGORAND_INDEXER || preset.indexerServer) : preset.indexerServer,
     }
 
     this.algorandClient = createAlgorandClient(this.networkConfig)
-    this.dispenser = this.createDispenser(networkEnv)
+    this.dispenser = this.createDispenser(network)
   }
 
   /**
@@ -180,6 +195,9 @@ export class AppState {
 
     this.algorandClient = createAlgorandClient(this.networkConfig)
     this.dispenser = this.createDispenser(network)
+
+    // Persist network selection for next startup
+    setSetting('network', network)
 
     return { config: this.networkConfig, clearedWallet }
   }

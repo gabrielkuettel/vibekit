@@ -65,6 +65,13 @@ export class PeraWallet implements WalletImplementation {
 
         this.accounts = this.mapAddressesToAccounts(storedSession.accounts)
         this.setupEventHandlers()
+
+        // Validate connector state - if not connected, clear stale session
+        if (!this.connector.connected) {
+          await this.sessionManager.clear()
+          this.accounts = []
+          this.connector = null
+        }
       }
 
       this.initialized = true

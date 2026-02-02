@@ -49,3 +49,6 @@ export {
   hasWalletSession,
   type WalletSessionRow,
 } from './wallet-sessions.js'
+
+// Settings operations (key-value store for user preferences)
+export { getSetting, setSetting, deleteSetting, hasSetting } from './settings.js'
