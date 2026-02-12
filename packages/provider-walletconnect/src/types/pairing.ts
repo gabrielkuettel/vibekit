@@ -20,6 +20,8 @@ export interface PairingRequest {
   instructions: string
   /** Promise that resolves when pairing completes */
   approval: Promise<PairingResult>
+  /** Browser URL when using browser-based flow (only set when useBrowser: true) */
+  browserUrl?: string
 }
 
 /**

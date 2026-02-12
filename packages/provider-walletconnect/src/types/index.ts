@@ -17,6 +17,10 @@ export type { PeraConfig, WalletConnectTransaction } from './walletconnect.js'
 import type { WalletConfig } from './config.js'
 import type { PairingRequest } from './pairing.js'
 import type { WalletId } from '@vibekit/provider-interface'
+import type { PairingOptions } from '../pairing/flow.js'
+
+// Re-export PairingOptions for consumers
+export type { PairingOptions }
 
 /**
  * Wallet implementation interface.
@@ -37,7 +41,7 @@ export interface WalletImplementation {
   resumeSession(): Promise<AccountInfo[]>
 
   /** Start new pairing flow */
-  requestPairing(): Promise<PairingRequest>
+  requestPairing(options?: PairingOptions): Promise<PairingRequest>
 
   /** Get current accounts */
   getAccounts(): AccountInfo[]

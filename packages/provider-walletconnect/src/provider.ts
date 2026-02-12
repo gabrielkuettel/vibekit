@@ -13,7 +13,7 @@ import type {
   ProviderStatus,
   WalletId,
 } from '@vibekit/provider-interface'
-import type { WalletConfig, PairingRequest, WalletImplementation } from './types/index.js'
+import type { WalletConfig, PairingRequest, WalletImplementation, PairingOptions } from './types/index.js'
 import {
   createWalletImplementation,
   getSupportedWallets,
@@ -34,8 +34,10 @@ export interface WalletProvider extends AccountProvider {
   /**
    * Initiate pairing with the wallet.
    * Returns immediately with QR code and approval promise.
+   *
+   * @param options - Optional pairing options (browser mode, timeout, etc.)
    */
-  requestPairing(): Promise<PairingRequest>
+  requestPairing(options?: PairingOptions): Promise<PairingRequest>
 
   /**
    * Disconnect from the wallet and clear session.
@@ -134,11 +136,11 @@ export class WalletProviderImpl implements WalletProvider {
     return this.wallet.getAccounts().length > 0
   }
 
-  async requestPairing(): Promise<PairingRequest> {
+  async requestPairing(options?: PairingOptions): Promise<PairingRequest> {
     if (!this.initialized) {
       await this.initialize()
     }
-    return this.wallet.requestPairing()
+    return this.wallet.requestPairing(options)
   }
 
   async disconnect(): Promise<void> {

@@ -20,8 +20,6 @@ export interface WalletMetadata {
 export interface WalletConfig {
   /** Network to connect to */
   network: 'mainnet' | 'testnet'
-  /** Directory for session persistence */
-  configDir?: string
   /** Application metadata */
   metadata?: WalletMetadata
   /** Custom bridge URL (optional) */
