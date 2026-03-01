@@ -36,12 +36,12 @@ export function bytesToBase64(bytes: Uint8Array | string): string {
   if (typeof bytes === 'string') {
     return bytes
   }
-  return btoa(String.fromCharCode(...bytes))
+  return Buffer.from(bytes).toString('base64')
 }
 
 /**
  * Encode a Uint8Array to base64.
  */
 export function encodeBase64(bytes: Uint8Array): string {
-  return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+  return Buffer.from(bytes).toString('base64')
 }
